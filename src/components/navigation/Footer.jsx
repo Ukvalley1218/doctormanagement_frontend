@@ -1,6 +1,25 @@
-import React from "react";
-
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import logo from "../../assets/images/logo.png"
+import apiClient from "../../../apiclient";
 const Footer = () => {
+  const { isLoggedIn } = useAuth();
+  const [footer, setFotter] = useState(null);
+  if (isLoggedIn) return null;
+
+  const fetchData = async() => {
+    try {
+      const response = await apiClient.get(`/admin/setting`);
+      setFotter(response.data[0])
+    } catch (error) {
+      console.log(error.response.data)
+    }
+  }
+
+  useEffect(() => {
+    fetchData();
+  },[])
+
   return (
     <footer className="bg-[#2D3748] text-white py-12">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
@@ -8,8 +27,9 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="text-center md:text-left">
             <div className="text-2xl font-bold mb-4 md:justify-start justify-center flex md:block">
-              <span className="text-[#0066CC]">Trust</span>
-              <span className="text-white">Med</span>
+              {/* <span className="text-[#0066CC]">Trust</span>
+              <span className="text-white">Med</span> */}
+              <img src={logo} className="w-50"/>
             </div>
             <p className="text-gray-300 text-sm text-center md:text-left">
               Your trusted healthcare partner for medicines and medical
@@ -84,7 +104,7 @@ const Footer = () => {
                   >
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
-                  +91 98765-43210
+                  {footer ? footer?.phone : 'Not Availabel'}
                 </div>
               </li>
               <li className="flex flex-col md:flex-row items-center justify-center md:justify-start text-center md:text-left">
@@ -97,7 +117,7 @@ const Footer = () => {
                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                   </svg>
-                  support@trustmed.com
+                  {footer ? footer?.email : 'Not Availabel'}
                 </div>
               </li>
             </ul>
@@ -107,7 +127,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-gray-600 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2025 TrustMed+ All rights reserved.
+            © 2025 Healcure All rights reserved.
           </p>
         </div>
       </div>

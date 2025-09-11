@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { ShoppingCart, Star, Filter, ChevronDown } from "lucide-react";
+import {
+  ShoppingCart,
+  Star,
+  Filter,
+  ChevronDown,
+  Plus,
+  Minus,
+  Check,
+} from "lucide-react";
 import hero from "../../assets/images/hero.png";
 import medicine from "../../assets/images/medicine.png";
 import medicine1 from "../../assets/images/medicine1.png";
@@ -16,8 +24,11 @@ import Navbar from "../navigation/Navbar";
 import Login from "../auth/Login";
 import Footer from "../navigation/Footer";
 import { Link } from "react-router-dom";
+import { useCart } from "../../contexts/CartContext";
+import apiClient from "../../../apiclient";
 
 function Home() {
+  const { addToCart, updateQuantity, items: cartItems, cartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -26,6 +37,12 @@ function Home() {
     useState("Price: Low to High");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [showAddToCartNotification, setShowAddToCartNotification] =
+    useState(false);
+  const [addedProduct, setAddedProduct] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [doctors, setDoctors] = useState(null);
+  const [loading, setLoading] = useState(true); // 🔹 Loading state
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,113 +58,33 @@ function Home() {
 
   const isMobile = windowWidth < 768;
 
-  // Mock product data based on the image
-  const products = [
-    {
-      id: 1,
-      name: "Paracetamol 500mg",
-      description: "Acetaminophen - Pain Relief & Fever Reducer",
-      brand: "By Johnson & Johnson",
-      price: 12.99,
-      originalPrice: 16.99,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      background: "bg-[#DCFCE7]",
-      image: medicine,
-      category: "Pain Relief",
-    },
-    {
-      id: 2,
-      name: "Ibuprofen 400mg",
-      description: "Anti-Inflammatory & Pain Relief",
-      brand: "By MediLabs",
-      price: 18.5,
-      originalPrice: null,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      image: medicine1,
-      background: "bg-[#DCFCE7]",
-      category: "Pain Relief",
-    },
-    {
-      id: 3,
-      name: "Vitamin D3 1000IU",
-      description: "Bone Health Supplement",
-      brand: "By VitaHealth",
-      price: 24.99,
-      originalPrice: 29.99,
-      stock: "Low Stock",
-      stockColor: "text-[#854D0E]",
-      image: medicine2,
-      background: "bg-[#FEF9C3]",
-      category: "Vitamins",
-    },
-    {
-      id: 4,
-      name: "Aspirin 75mg",
-      description: "Heart Health & Blood Thinner",
-      brand: "By CardioMed",
-      price: 8.75,
-      originalPrice: null,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      image: medicine3,
-      background: "bg-[#DCFCE7]",
-      category: "Heart Health",
-    },
-    {
-      id: 5,
-      name: "Omega-3 Fish Oil",
-      description: "Heart & Brain Health",
-      brand: "By OceanHealth",
-      price: 32.99,
-      originalPrice: null,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      image: medicine4,
-      background: "bg-[#DCFCE7]",
-      category: "Supplements",
-    },
-    {
-      id: 6,
-      name: "Daily Multivitamin",
-      description: "Complete Nutritional Support",
-      brand: "By NutriMax",
-      price: 19.99,
-      originalPrice: 24.99,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      image: medicine5,
-      background: "bg-[#DCFCE7]",
-      category: "Vitamins",
-    },
-    {
-      id: 7,
-      name: "Cough Syrup",
-      description: "Respiratory Relief",
-      brand: "By RespCare",
-      price: 14.5,
-      originalPrice: null,
-      stock: "In Stock",
-      stockColor: "text-green-600",
-      image: medicine6,
-      background: "bg-[#DCFCE7]",
-      category: "Cold & Flu",
-    },
-    {
-      id: 8,
-      name: "Antihistamine 25mg",
-      description: "Allergy Relief",
-      brand: "By AllerFree",
-      price: 16.25,
-      originalPrice: null,
-      stock: "Out of Stock",
-      stockColor: "text-red-600",
-      image: medicine7,
-      background: "bg-[#FEE2E2]",
-      category: "Allergy",
-    },
-  ];
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setAddedProduct(product);
+    setShowAddToCartNotification(true);
+
+    // Hide notification after 3 seconds
+    setTimeout(() => {
+      setShowAddToCartNotification(false);
+      setAddedProduct(null);
+    }, 3000);
+  };
+
+  const handleQuantityChange = (productId, change) => {
+    const currentItem = cartItems.find((item) => item._id === productId);
+    if (currentItem) {
+      const newQuantity = Math.max(0, currentItem.quantity + change);
+      if (newQuantity === 0) {
+        updateQuantity(productId, 0);
+      } else {
+        updateQuantity(productId, newQuantity);
+      }
+    }
+  };
+
+  const getCartItem = (productId) => {
+    return cartItems.find((item) => item._id === productId);
+  };
 
   const categories = [
     "All Categories",
@@ -165,12 +102,70 @@ function Home() {
     "Newest",
   ];
 
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const fetchdata = async () => {
+    try {
+      const response = await apiClient.get("/products");
+      console.log(response.data);
+      setProduct(response.data.products);
+    } catch (error) {
+      console.log(error.response);
+    }
+  };
+
+  const fetchdoctordata = async () => {
+    try {
+      const response = await apiClient.get("/doctors");
+      console.log(response.data.doctors);
+      setDoctors(response.data.doctors);
+    } catch (error) {
+      console.log(error.response);
+    }
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      await Promise.all([fetchdata(), fetchdoctordata()]);
+      setLoading(false); // 🔹 Stop loading when data is ready
+    };
+    fetchAll();
+  }, []);
+
+  const getStockStyle = (stock) => {
+    if (stock > 20) {
+      return {
+        textColor: "text-green-800",
+        bgColor: "bg-green-100",
+        text: "In Stock",
+      };
+    } else if (stock > 0) {
+      return {
+        textColor: "text-amber-800",
+        bgColor: "bg-amber-100",
+        text: "Low Stock",
+      };
+    } else {
+      return {
+        textColor: "text-red-800",
+        bgColor: "bg-red-100",
+        text: "Out Of Stock",
+      };
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <Navbar onLoginClick={() => setIsLoginOpen(true)} />
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-16 flex flex-col md:flex-row items-center">
@@ -183,41 +178,51 @@ function Home() {
             Experience world-class healthcare with our team of renowned
             specialists and cutting-edge medical technology.
           </p>
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
-            <button className="px-6 py-3 bg-[#0066CC] text-white rounded-md flex items-center justify-center hover:bg-blue-700">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              Find a Doctor
-            </button>
-            <button className="px-6 py-3 border border-[#0066CC] text-[#0066CC] rounded-md flex items-center justify-center hover:bg-blue-50">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-              Order Medicine
-            </button>
+          <div
+            className="flex flex-col sm:flex-row 
+                space-y-4 sm:space-y-0 sm:space-x-4 
+                items-center sm:items-start 
+                justify-center md:justify-start"
+          >
+            <Link to="/doctors">
+              <button className="px-6 py-3 bg-[#0066CC] cursor-pointer text-white rounded-md flex items-center justify-center hover:bg-blue-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                Find a Doctor
+              </button>
+            </Link>
+
+            <Link to="/medicines">
+              <button className="px-6 py-3 border cursor-pointer border-[#0066CC] text-[#0066CC] rounded-md flex items-center justify-center hover:bg-blue-50">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+                Order Medicine
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -325,7 +330,7 @@ function Home() {
 
           {/* View All Medicines Button */}
           <div className="flex justify-center sm:justify-end mt-4 md:-mt-11">
-            <Link to="/medicine">
+            <Link to="/medicines">
               <button className="px-5 py-2 cursor-pointer border border-[#0066CC] text-[#0066CC] rounded-md hover:bg-blue-50 transition-colors">
                 View All Medicines
               </button>
@@ -335,69 +340,118 @@ function Home() {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {/* Product Image */}
-              <div className="bg-gray-100 flex items-center justify-center">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-1/2 object-cover"
-                />
-              </div>
+          {product &&
+            product.map((product) => {
+              const style = getStockStyle(product.stock);
 
-              {/* Product Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-left text-[#2D3748] text-lg mb-1">
-                  {product.name}
-                </h3>
-                <p className="text-gray-600 text-left text-xs mb-1">
-                  {product.description} <br /> {product.brand}
-                </p>
-
-                {/* Price */}
-                <div className="flex flex-row justify-between items-center mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-[#2D3748]">
-                      ${product.price}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
-                        ${product.originalPrice}
-                      </span>
-                    )}
+              return (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full"
+                >
+                  {/* Product Image */}
+                  <div className="bg-gray-100 flex items-center justify-center">
+                    <img
+                      src={product.mainImage}
+                      alt={product.name}
+                      className="w-full h-48 md:h-56 object-contain"
+                    />
                   </div>
 
-                  {/* Stock Status */}
-                  <div>
-                    <p
-                      className={`text-sm font-medium px-2 py-1 rounded ${product.stockColor} ${product.background}`}
-                    >
-                      {product.stock}
-                    </p>
+                  {/* Product Info */}
+                  {/* Product Info */}
+                  <div className="p-4 flex flex-col flex-1">
+                    <Link to={`/product_details/${product._id}`}>
+                      <h3 className="font-semibold text-left text-[#2D3748] text-lg mb-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-gray-600 text-left text-xs mb-1">
+                        {product.description} <br /> {product.brand}
+                      </p>
+
+                      {/* Price + Stock */}
+                      <div className="flex flex-row justify-between items-center mb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold text-[#2D3748]">
+                            ${product.sellingPrice}
+                          </span>
+                          {product.actualPrice && (
+                            <span className="text-sm text-gray-500 line-through">
+                              ${product.actualPrice}
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <p
+                            className={`text-sm font-medium px-3 py-1 rounded-full ${style.textColor} ${style.bgColor}`}
+                          >
+                            {style.text}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Cart Controls pinned at bottom */}
+                    <div className="mt-auto">
+                      {(() => {
+                        const cartItem = getCartItem(product._id);
+                        if (cartItem && cartItem.quantity > 0) {
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(product._id, -1)
+                                  }
+                                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="w-8 text-center font-medium text-sm">
+                                  {cartItem.quantity}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(product._id, 1)
+                                  }
+                                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <Link to="/cart">
+                                <button className="w-full bg-green-600 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium hover:bg-green-700 transition-colors">
+                                  <Check className="h-4 w-4" />
+                                  Go to Cart
+                                </button>
+                              </Link>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <button
+                              onClick={() => handleAddToCart(product)}
+                              className={`w-full cursor-pointer py-2 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+                                product.stock === "Out of Stock"
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-[#0066CC] text-white hover:bg-blue-700"
+                              }`}
+                              disabled={product.stock <= "0"}
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                              {product.stock <= "0"
+                                ? "Out of Stock"
+                                : "Add to Cart"}
+                            </button>
+                          );
+                        }
+                      })()}
+                    </div>
                   </div>
                 </div>
-
-                {/* Add to Cart Button */}
-                <button
-                  className={`w-full py-2 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
-                    product.stock === "Out of Stock"
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#0066CC] text-white hover:bg-blue-700"
-                  }`}
-                  disabled={product.stock === "Out of Stock"}
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {product.stock === "Out of Stock"
-                    ? "Out of Stock"
-                    : "Add to Cart"}
-                </button>
-              </div>
-            </div>
-          ))}
+              );
+            })}
         </div>
       </section>
       {/* Statistics Section */}
@@ -427,7 +481,7 @@ function Home() {
       </section>
 
       {/* Doctor Appointments Section */}
-      <section className="bg-gray-100 py-16">
+      <section className="pb-12 mt-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           {/* Section Header */}
           <div className="text-center mb-12">
@@ -442,136 +496,68 @@ function Home() {
           {/* Doctors Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             {/* Doctor 1 */}
-            <div className="bg-white rounded-lg p-6 text-center shadow-md">
-              <div className="flex gap-5">
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={dr}
-                    alt="Dr. Rajesh Kumar"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-[#2D3748] mb-0">
-                    Dr. Rajesh Kumar
-                  </h3>
-                  <p className="text-left">General Physician</p>
-                  <div className="flex mb-2">
-                    <div className="flex text-yellow-400">
-                      {[...Array(1)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
-                      ))}
+            {doctors &&
+              doctors.map((doctor) => (
+                <div
+                  key={doctor._id}
+                  className="bg-white rounded-lg p-6 text-center shadow-md flex flex-col h-full"
+                >
+                  <div className="lg:flex gap-5">
+                    <div className="flex justify-center mb-4">
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
                     </div>
-                    <span className="text-sm text-gray-600 ml-2">
-                      4.9 (100 reviews)
-                    </span>
+                    <div>
+                      <h3 className="text-xl lg:text-left font-semibold text-[#2D3748] mb-0">
+                        {doctor.name}
+                      </h3>
+                      <p className="text-center lg:text-left">
+                        {doctor.specialty}
+                      </p>
+                      <div className="flex justify-center content-center lg:justify-start mb-2">
+                        <div className="flex text-yellow-400">
+                          {[...Array(1)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-current" />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600 ml-2">
+                          {doctor.rating} (100 reviews)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-m mb-4 text-center lg:text-left">
+                    {doctor.bio}
+                  </p>
+
+                  {/* Push bottom section down */}
+                  <div className="mt-auto">
+                    <div className="lg:flex justify-between items-center mb-4">
+                      <div className="text-l font-bold text-[#0066CC]">
+                        $ {doctor.consultationFee}/consultation
+                      </div>
+                      <div className="text-sm text-[#6B7280]">
+                        Available Today
+                      </div>
+                    </div>
+                    <Link to={`/book_appointment/${doctor._id}`}>
+                      <button className="w-full cursor-pointer bg-[#0066CC] text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        Book Appointment
+                      </button>
+                    </Link>
                   </div>
                 </div>
-              </div>
-              <p className="text-gray-600 text-m mb-4 text-left">
-                10+ years experience in general medicine and preventive care
-              </p>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xl font-bold text-[#0066CC]">
-                  ₹500/consultation
-                </span>
-                <span className="text-sm text-[#6B7280]">Available Today</span>
-              </div>
-              <button className="w-full bg-[#0066CC] text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Book Appointment
-              </button>
-            </div>
-
-            {/* Doctor 2 */}
-            <div className="bg-white rounded-lg p-6 text-center shadow-md">
-              <div className="flex gap-5">
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={dr1}
-                    alt="Dr. Priya Sharma"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-[#2D3748]">
-                    Dr. Priya Sharma
-                  </h3>
-                  <p className="text-left">Cardiologist</p>
-                  <div className="flex mb-2">
-                    <div className="flex text-yellow-400">
-                      {[...Array(1)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
-                      ))}
-                    </div>
-                    <span className="text-sm text-left text-gray-600 ml-2">
-                      4.8 (89 reviews)
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 text-m mb-4 text-left">
-                Specialist in heart diseases and cardiovascular health
-              </p>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xl font-bold text-[#0066CC]">
-                  ₹800/consultation
-                </span>
-                <span className="text-sm text-[#6B7280]">Next slot: 2 PM</span>
-              </div>
-              <button className="w-full bg-[#0066CC] text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Book Appointment
-              </button>
-            </div>
-
-            {/* Doctor 3 */}
-            <div className="bg-white rounded-lg p-6 text-center shadow-md">
-              <div className="flex gap-5">
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={dr2}
-                    alt="Dr. Amit Singh"
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-[#2D3748] mb-0">
-                    Dr. Amit Singh
-                  </h3>
-                  <p className="text-left">Dermatologist</p>
-
-                  <div className="flex justify-center items-center mb-2">
-                    <div className="flex text-yellow-400">
-                      {[...Array(1)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600 ml-2">
-                      4.7 (156 reviews)
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 text-m mb-4 text-left">
-                Expert in skin care and dermatological treatments
-              </p>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xl font-bold text-[#0066CC]">
-                  ₹600/consultation
-                </span>
-                <span className="text-sm text-[#6B7280]">
-                  Available Tomorrow
-                </span>
-              </div>
-              <button className="w-full bg-[#0066CC] text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Book Appointment
-              </button>
-            </div>
+              ))}
           </div>
 
           {/* View All Doctors Button */}
           <div className="text-center">
-            <Link to="/doctor">
-              <button className="px-8 py-3 border border-[#0066CC] text-[#0066CC] rounded-md hover:bg-blue-50 transition-colors">
+            <Link to="/doctors">
+              <button className="px-8 py-3 cursor-pointer border border-[#0066CC] text-[#0066CC] rounded-md hover:bg-blue-50 transition-colors">
                 View All Doctors
               </button>
             </Link>
@@ -579,39 +565,19 @@ function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
-
-      {/* Login Modal */}
-      {isLoginOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setIsLoginOpen(false)}
-          />
-          <div className="relative z-[1000] max-w-5xl w-full max-h-[90vh] overflow-auto rounded-lg shadow-2xl">
-            <button
-              aria-label="Close login"
-              className="absolute top-3 right-3 bg-white/90 rounded-full p-2 shadow hover:bg-white"
-              onClick={() => setIsLoginOpen(false)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-            <Login />
+      {/* Add to Cart Success Notification */}
+      {showAddToCartNotification && addedProduct && (
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 bg-green-500 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 sm:gap-3 max-w-[90vw] sm:max-w-none">
+          <Check className="w-5 h-5" />
+          <div>
+            <p className="font-medium">{addedProduct.name} added to cart!</p>
+            <p className="text-sm opacity-90">Cart now has {cartCount} items</p>
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

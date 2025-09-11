@@ -1,0 +1,620 @@
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import Login from "../auth/Login";
+import apiClient from "../../../apiclient";
+import { loadStripe } from "@stripe/stripe-js";
+import { useElements, useStripe } from "@stripe/react-stripe-js";
+// import {
+//   Elements,
+//   PaymentElement,
+//   useStripe,
+//   useElements,
+// } from "@stripe/react-stripe-js";
+
+const Cart = () => {
+  const navigate = useNavigate();
+  const {
+    items: cartItems,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    applyPromoCode,
+    setDeliveryOption,
+    promoCode,
+    deliveryOption,
+    deliveryFee,
+    discount: promoPercent,
+  } = useCart();
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [setting, setSetting] = useState(null);
+  const [loading, setLoading] = useState(true); // 👈 Loading state
+  const [submit, setSubmit] = useState(false); // 👈 Loading state
+  console.log(promoPercent);
+
+  const stripe = useStripe();
+  const elements = useElements();
+  // Checkout form state
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    apartment: "",
+    landmark: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+  });
+
+  const { isLoggedIn } = useAuth();
+
+  // Fetch user + setting data together
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = localStorage.getItem("user_id");
+        const requests = [];
+
+        if (userId) {
+          requests.push(apiClient.get(`/users/${userId}`));
+        } else {
+          requests.push(Promise.resolve(null));
+        }
+
+        requests.push(apiClient.get(`/admin/setting`));
+
+        const [userRes, settingRes] = await Promise.all(requests);
+
+        if (userRes) {
+          setUser(userRes.data);
+          setForm((prev) => ({
+            ...prev,
+            name: userRes?.data?.name || "",
+            email: userRes?.data?.email || "",
+            phone: userRes?.data?.phone || "",
+            address: userRes?.data?.address?.address || "",
+            apartment: userRes?.data?.address?.apartment || "",
+            city: userRes?.data?.address?.city || "",
+            landmark: userRes?.data?.address?.landmark || "",
+            state: userRes?.data?.address?.state || "",
+            zip: userRes?.data?.address?.zip || "",
+          }));
+        }
+
+        setSetting(settingRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error.response || error.message);
+      } finally {
+        setLoading(false); // 👈 Stop loading
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Currency formatter
+  const formatCurrency = (value) => `$${Number(value).toFixed(2)}`;
+
+  // Calculate item discounted price (member discount if any)
+  const getItemPrice = (item) => {
+    if (user?.userDiscount) {
+      const discountAmount = (item.actualPrice * user.userDiscount) / 100;
+      const discountedPrice = item.actualPrice - discountAmount;
+      return discountedPrice * item.quantity;
+    }
+    return item.sellingPrice * item.quantity;
+  };
+
+  // Totals (member discount scenario)
+  const actualTotal = useMemo(() => {
+    return cartItems.reduce(
+      (acc, item) => acc + item.actualPrice * item.quantity,
+      0
+    );
+  }, [cartItems]);
+
+  const finalAmount = useMemo(() => {
+    return cartItems.reduce((acc, item) => acc + getItemPrice(item), 0);
+  }, [cartItems, user]);
+
+  const memberDiscountAmount = useMemo(() => {
+    return actualTotal - finalAmount;
+  }, [actualTotal, finalAmount]);
+
+  // Promo discount applied on the final amount after member discount
+  const promoDiscountAmount = useMemo(() => {
+    const percent = Number(promoPercent) || 0;
+    return (finalAmount * percent) / 100;
+  }, [finalAmount, promoPercent]);
+
+  const totalamount =
+    finalAmount - promoDiscountAmount + (setting && setting[0]?.deliverfee);
+
+  // Apply promo code
+  const handleApplyPromoCode = () => {
+    if (promoCodeInput.trim()) {
+      applyPromoCode(promoCodeInput.trim());
+      setPromoCodeInput("");
+    }
+  };
+
+  // Place order
+  const handlePlaceOrder = async () => {
+    try {
+      setSubmit(true);
+      const updatePayload = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        address: {
+          apartment: form.apartment,
+          landmark: form.landmark,
+          address: form.address,
+          city: form.city,
+          state: form.state,
+          zip: form.zip,
+        },
+      };
+
+      await apiClient.put(`/users/${user._id}`, updatePayload);
+
+      const session_id = localStorage.getItem("sessionId");
+
+      const placeOrderPayload = {
+        shippingDetails: { ...form },
+        items: cartItems.map((item) => ({
+          productId: item._id,
+          quantity: item.quantity,
+        })),
+        totalPrice: totalamount,
+        deliverfee: setting[0]?.deliverfee || 0,
+        session_id,
+        discountAmount: memberDiscountAmount + promoDiscountAmount,
+        productValue: actualTotal,
+      };
+
+      const res = await apiClient.post(
+        `/payment/create-order`,
+        placeOrderPayload
+      );
+      console.log(res.data.clientSecret);
+      // const {error, res}
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+        res.data.clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: { name: "Customer" },
+          },
+        }
+      );
+
+      setOrderPlaced(true);
+      // navigate("/checkout-success");
+      localStorage.removeItem("cart");
+      localStorage.removeItem("sessionId");
+
+      setTimeout(() => {
+        setOrderPlaced(false);
+        setShowCheckout(false);
+        clearCart();
+      }, 2000);
+    } catch (error) {
+      console.error("Order placement failed:", error);
+      alert(
+        error?.response?.data?.message ||
+          "Unable to update this try again later"
+      );
+    } finally {
+      setSubmit(false);
+    }
+  };
+
+  // 👇 Loader UI while fetching data
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        {/* Cart Items */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Shopping Cart
+              </h2>
+              <span className="text-gray-500 text-sm">
+                {cartItems.length} items
+              </span>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto pb-2 sm:pb-0 sm:flex-col sm:gap-4 sm:overflow-visible">
+              {cartItems.length === 0 ? (
+                <p className="text-gray-500 text-center w-full">
+                  Your cart is empty
+                </p>
+              ) : (
+                cartItems.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-gray-100 rounded-lg bg-white"
+                  >
+                    <img
+                      src={item.mainImage}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-md mx-auto sm:mx-0"
+                    />
+
+                    <div className="flex-1 text-center sm:text-left">
+                      <h3 className="font-medium text-gray-800 text-sm sm:text-base">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {item.subtitle}
+                      </p>
+                      <p className="text-xs text-gray-500">{item.pack}</p>
+                    </div>
+
+                    {/* Quantity Controls */}
+                    <div className="flex justify-center items-center gap-2 sm:gap-3">
+                      <button
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity - 1)
+                        }
+                        disabled={item.quantity <= 1}
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                      <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity + 1)
+                        }
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+
+                    {/* Price */}
+                    <div className="text-center sm:text-right min-w-[80px]">
+                      <div className="font-semibold text-blue-600 text-sm sm:text-base">
+                        {formatCurrency(getItemPrice(item))}
+                      </div>
+                      <div className="text-xs sm:text-sm text-gray-500 line-through">
+                        {formatCurrency(item.actualPrice * item.quantity)}
+                      </div>
+                    </div>
+
+                    {/* Remove */}
+                    <button
+                      onClick={() => removeFromCart(item._id)}
+                      className="text-red-500 hover:text-red-700 p-1 sm:p-2 self-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-6 pt-4 border-t">
+              <Link to="/medicines">
+                <button className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm sm:text-base">
+                  <ArrowLeft className="w-4 h-4" /> Continue Shopping
+                </button>
+              </Link>
+              {cartItems.length > 0 && (
+                <button
+                  onClick={clearCart}
+                  className="flex items-center gap-2 text-red-500 hover:text-red-700 text-sm sm:text-base"
+                >
+                  <Trash2 className="w-4 h-4" /> Clear Cart
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Order Summary */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">
+              Order Summary
+            </h2>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex justify-between text-gray-600">
+                <span>Product Value</span>
+                <span>{formatCurrency(actualTotal)}</span>
+              </div>
+              {memberDiscountAmount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>
+                    Member Discount {user && `(${user?.userDiscount}%)`}
+                  </span>
+                  <span>-{formatCurrency(memberDiscountAmount)}</span>
+                </div>
+              )}
+              {promoPercent > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Promo Discount ({promoPercent}%)</span>
+                  <span>-{formatCurrency(promoDiscountAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Fee</span>
+                <span>{formatCurrency(setting && setting[0].deliverfee)}</span>
+              </div>
+              <div className="border-t pt-3 flex justify-between font-semibold text-lg">
+                <span>Total</span>
+                <span>{formatCurrency(totalamount)}</span>
+              </div>
+            </div>
+
+            {/* Promo */}
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter promo code"
+                  value={promoCodeInput}
+                  onChange={(e) => setPromoCodeInput(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleApplyPromoCode}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  Apply
+                </button>
+              </div>
+              {promoCode && (
+                <p className="text-sm text-green-600 mt-2">
+                  Promo code "{promoCode}" applied!
+                </p>
+              )}
+            </div>
+
+            {/* Delivery Options */}
+            {/* <div className="mb-6">
+              <h3 className="font-medium mb-3">Delivery Options</h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="standard"
+                    checked={deliveryOption === "standard"}
+                    onChange={(e) => setDeliveryOption(e.target.value)}
+                  />
+                  <span className="text-xs">Standard (2-3 days) - $5.99</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value="express"
+                    checked={deliveryOption === "express"}
+                    onChange={(e) => setDeliveryOption(e.target.value)}
+                  />
+                  <span className="text-xs">Express (1 day) - $12.99</span>
+                </label>
+              </div>
+            </div> */}
+
+            {/* Checkout */}
+            <button
+              onClick={() => {
+                if (!isLoggedIn) {
+                  setIsLoginOpen(true);
+                  return;
+                }
+                setShowCheckout(true);
+              }}
+              disabled={cartItems.length === 0}
+              className={`w-full py-3 rounded-md font-medium flex items-center justify-center gap-2 ${
+                cartItems.length === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cartItems.length === 0 ? "Cart is Empty" : "Proceed to Payment"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Checkout Modal */}
+      {showCheckout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 overflow-y-auto max-h-[90vh]">
+            <h2 className="text-xl font-semibold mb-4">Checkout</h2>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between">
+                <span>Product Value:</span>
+                <span>{formatCurrency(actualTotal)}</span>
+              </div>
+              {memberDiscountAmount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Member Discount{` (${user?.userDiscount}%)`}:</span>
+                  <span>-{formatCurrency(memberDiscountAmount)}</span>
+                </div>
+              )}
+              {promoPercent > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Promo Discount{` (${promoPercent}%)`}:</span>
+                  <span>-{formatCurrency(promoDiscountAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span>Delivery Fee:</span>
+                <span>{formatCurrency(setting && setting[0].deliverfee)}</span>
+              </div>
+              <div className="border-t pt-2 flex justify-between font-semibold">
+                <span>Total:</span>
+                <span>{formatCurrency(totalamount)}</span>
+              </div>
+            </div>
+
+            {/* Checkout Form */}
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={form?.name || ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={form?.email || ""}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                value={form?.phone || ""}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+
+              {/* Address Fields */}
+              <input
+                type="text"
+                placeholder="Flat / Apartment / House No."
+                value={form?.apartment || ""}
+                onChange={(e) =>
+                  setForm({ ...form, apartment: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Landmark"
+                value={form?.landmark || ""}
+                onChange={(e) => setForm({ ...form, landmark: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Address (Area and Street)"
+                value={form?.address || ""}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="City"
+                  value={form?.city || ""}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  className="px-3 py-2 border border-gray-300 rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="State"
+                  value={form?.state || ""}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                  className="px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="Zip / Postal Code"
+                value={form?.zip || ""}
+                onChange={(e) => setForm({ ...form, zip: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCheckout(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePlaceOrder}
+                disabled={submit}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                {submit ? "Submitting..." : "Place Order"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Success Toast */}
+      {orderPlaced && (
+        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3">
+          <Check className="w-5 h-5" />
+          <div>
+            <p className="font-medium">Order placed successfully!</p>
+            <p className="text-sm opacity-90">Thank you for your purchase</p>
+          </div>
+        </div>
+      )}
+
+      {/* Login Modal */}
+      {isLoginOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center p-2 justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setIsLoginOpen(false)}
+          />
+          <div className="relative z-[1000] max-w-5xl w-full max-h-[90vh] overflow-auto rounded-lg shadow-2xl bg-white">
+            <button
+              aria-label="Close login"
+              className="absolute top-3 right-3 bg-white/90 rounded-full p-2 shadow hover:bg-white"
+              onClick={() => setIsLoginOpen(false)}
+            >
+              ✕
+            </button>
+            <Login
+              onLoginSuccess={() => {
+                setIsLoginOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Cart;

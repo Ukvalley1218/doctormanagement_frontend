@@ -6,6 +6,8 @@ import dr from "../../assets/images/dr.png";
 import dr1 from "../../assets/images/dr1.png";
 import dr2 from "../../assets/images/dr2.png";
 import { Star, MapPin, Clock, DollarSign, ChevronDown } from "lucide-react";
+import apiClient from "../../../apiclient";
+import { Link } from "react-router-dom";
 
 const Doctors = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,9 +18,16 @@ const Doctors = () => {
     useState("Price: Low to High");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [sortBy, setSortBy] = useState("Rating");
   const [currentPage, setCurrentPage] = useState(1);
+  const [doctors, setDoctors] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  // Server-side pagination state
+  const [totalDoctors, setTotalDoctors] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const doctorsPerPage = 10;
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,124 +42,78 @@ const Doctors = () => {
 
   const isMobile = windowWidth < 768;
 
-  // Doctors data
-  const doctorsData = [
-    {
-      id: 1,
-      name: "Dr. John Smith",
-      specialty: "Cardiologist",
-      rating: 4.9,
-      reviews: 127,
-      location: "Downtown Medical Center",
-      availability: "Next available: Today 2:30 PM",
-      price: 500,
-      image: dr,
-    },
-    {
-      id: 2,
-      name: "Dr. John Smith",
-      specialty: "Cardiologist",
-      rating: 4.9,
-      reviews: 127,
-      location: "Downtown Medical Center",
-      availability: "Next available: Today 2:30 PM",
-      price: 500,
-      image: dr1,
-    },
-    {
-      id: 3,
-      name: "Dr. John Smith",
-      specialty: "Cardiologist",
-      rating: 4.3,
-      reviews: 127,
-      location: "Downtown Medical Center",
-      availability: "Next available: Today 2:30 PM",
-      price: 500,
-      image: dr2,
-    },
-    {
-      id: 4,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 400,
-      image: dr,
-    },
-    {
-      id: 5,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 400,
-      image: dr1,
-    },
-    {
-      id: 6,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 400,
-      image: dr2,
-    },
-    {
-      id: 7,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.5,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 300,
-      image: dr,
-    },
-    {
-      id: 8,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 300,
-      image: dr1,
-    },
-    {
-      id: 9,
-      name: "Dr. Emily Davis",
-      specialty: "Pediatrician",
-      rating: 4.6,
-      reviews: 203,
-      location: "Children's Medical Center",
-      availability: "Next available: Monday 11:30 AM",
-      price: 300,
-      image: dr2,
-    },
-  ];
+  // Server-side pagination API call
+  const fetchdoctordata = async (page = 1, search = "", sort = "Rating") => {
+    try {
+      setLoading(true);
+      
+      // Build query parameters for server-side pagination
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: doctorsPerPage.toString(),
+        search: search.trim(),
+        sortBy: sort
+      });
 
-  const doctorsPerPage = 6;
-  const totalPages = Math.ceil(doctorsData.length / doctorsPerPage);
+      const response = await apiClient.get(`/doctors?${params}`);
+      
+      console.log(response.data);
+      
+      // Assuming your API returns something like:
+      // {
+      //   doctors: [...],
+      //   totalCount: 50,
+      //   currentPage: 1,
+      //   totalPages: 9
+      // }
+      
+      setDoctors(response.data.doctors || []);
+      setTotalDoctors(response.data.totalDoctors || 0);
+      setTotalPages(response.data.totalPages || 0);
+      
+      // If your API doesn't return totalPages, calculate it
+      if (!response.data.totalPages && response.data.totalCount) {
+        setTotalPages(Math.ceil(response.data.totalCount / doctorsPerPage));
+      }
+      
+    } catch (error) {
+      console.log(error);
+      setDoctors([]);
+      setTotalDoctors(0);
+      setTotalPages(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Slice data for current page
-  const indexOfLastDoctor = currentPage * doctorsPerPage;
-  const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-  const currentDoctors = doctorsData.slice(
-    indexOfFirstDoctor,
-    indexOfLastDoctor
-  );
+  // Initial load
+  useEffect(() => {
+    fetchdoctordata(currentPage, searchQuery, sortBy);
+  }, [currentPage, searchQuery, sortBy]);
 
+  // Listen for search events from navbar
+  useEffect(() => {
+    const handleSearch = (event) => {
+      setSearchQuery(event.detail);
+      setCurrentPage(1); // Reset to first page on search
+    };
+
+    window.addEventListener("search", handleSearch);
+    return () => window.removeEventListener("search", handleSearch);
+  }, []);
+
+  // Handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSort) => {
+    setSortBy(newSort);
+    setCurrentPage(1); // Reset to first page on sort change
+    setShowPriceDropdown(false);
   };
 
   const categories = [
@@ -167,17 +130,27 @@ const Doctors = () => {
     "Reviews",
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar onLoginClick={() => setIsLoginOpen(true)} />
+  // Loading UI while fetching data
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
+  return (
+    <div className="min-h-screen">
       {/* Search and Filter Section */}
-      <section className="bg-white pt-6">
+      <section className="pt-6">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-xl text-left md:text-2xl font-bold text-[#2D3748]">
-              Available Doctors (24 results)
+              Available Doctors ({totalDoctors} results)
             </p>
 
             {/* Sort Dropdown */}
@@ -195,10 +168,7 @@ const Doctors = () => {
                   {sortOptions.map((option) => (
                     <button
                       key={option}
-                      onClick={() => {
-                        setSortBy(option);
-                        setShowPriceDropdown(false);
-                      }}
+                      onClick={() => handleSortChange(option)}
                       className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors"
                     >
                       {option}
@@ -210,131 +180,120 @@ const Doctors = () => {
           </div>
         </div>
       </section>
+
       {/* Doctor Results Section */}
-      <section className="bg-gray-50 py-8">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           {/* Doctors Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {currentDoctors.map((doctor) => (
-              <div
-                key={doctor.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <div className="p-4">
-                  <div className="flex items-center gap-4 mb-3">
-                    <img
-                      src={doctor.image}
-                      alt={doctor.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-left text-gray-900 text-sm">
-                        {doctor.name}
-                      </h3>
-                      <p className="text-gray-600 text-left text-sm">
-                        {doctor.specialty}
-                      </p>
-                      <div className="flex items-center gap-2 mb-3">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium text-gray-900 ml-1">
-                          {doctor.rating}
-                        </span>
-                        <span className="text-sm text-gray-600 ml-1">
-                          ({doctor.reviews})
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            {!doctors || doctors.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <div className="text-gray-500 text-lg mb-4">
+                  No doctors found
+                </div>
+                <p className="text-gray-400">
+                  Try adjusting your search criteria
+                </p>
+              </div>
+            ) : (
+              doctors.map((doctor) => (
+                <div
+                  key={doctor._id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <Link to={`/book_appointment/${doctor._id}`}>
+                    <div className="p-4">
+                      <div className="flex items-center gap-4 mb-3">
+                        <img
+                          src={doctor.image}
+                          alt={doctor.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-left text-gray-900 text-sm">
+                            {doctor.name}
+                          </h3>
+                          <p className="text-gray-600 text-left text-sm">
+                            {doctor.specialty}
+                          </p>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <span className="text-sm font-medium text-gray-900">
+                              {doctor.rating}
+                            </span>
+                            <span className="text-sm text-gray-600">
+                              (100 Reviews)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">
+                          {doctor.location}
                         </span>
                       </div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <DollarSign className="h-4 w-4 text-gray-400" />
+                        <span className="text-lg font-bold text-[#0066CC]">
+                          ${doctor.consultationFee} consultation
+                        </span>
+                      </div>
+                      <button className="w-full bg-[#4285F4] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
+                        Book Appointment
+                      </button>
                     </div>
-                  </div>
-                  {/* <div className="flex items-center gap-2 mb-3">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm font-medium text-gray-900 ml-1">
-                      {doctor.rating}
-                    </span>
-                    <span className="text-sm text-gray-600 ml-1">
-                      ({doctor.reviews})
-                    </span>
-                  </div> */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {doctor.location}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {doctor.availability}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
-                    <span className="text-lg font-bold text-[#0066CC]">
-                      ${doctor.price} consultation
-                    </span>
-                  </div>
-                  <button className="w-full bg-[#4285F4] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
-                    Book Appointment
-                  </button>
+                  </Link>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          {/* Pagination */}
-          <div className="flex justify-center items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
-            >
-              <ChevronDown className="h-4 w-4 rotate-90" />
-            </button>
-
-            {[...Array(totalPages)].map((_, index) => (
+          {/* Pagination - Only show if there are multiple pages */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2">
               <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === index + 1
-                    ? "bg-[#4285F4] text-white"
-                    : "hover:bg-gray-200 transition-colors"
-                }`}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {index + 1}
+                <ChevronDown className="h-4 w-4 rotate-90" />
               </button>
-            ))}
 
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50"
-            >
-              <ChevronDown className="h-4 w-4 -rotate-90" />
-            </button>
-          </div>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-3 py-2 rounded-md ${
+                    currentPage === index + 1
+                      ? "bg-[#4285F4] text-white"
+                      : "hover:bg-gray-200 transition-colors"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronDown className="h-4 w-4 -rotate-90" />
+              </button>
+            </div>
+          )}
+
+          {/* Page Info */}
+          {totalPages > 1 && (
+            <div className="text-center mt-4 text-sm text-gray-600">
+              Showing {Math.min((currentPage - 1) * doctorsPerPage + 1, totalDoctors)} - {Math.min(currentPage * doctorsPerPage, totalDoctors)} of {totalDoctors} doctors (Page {currentPage} of {totalPages})
+            </div>
+          )}
         </div>
       </section>
 
       <Footer />
-
-      {isLoginOpen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setIsLoginOpen(false)}
-          />
-          <div className="relative z-[1000] max-w-5xl w-full max-h-[90vh] overflow-auto rounded-lg shadow-2xl">
-            <button
-              aria-label="Close login"
-              className="absolute top-3 right-3 bg-white/90 rounded-full p-2 shadow hover:bg-white"
-              onClick={() => setIsLoginOpen(false)}
-            >
-              ✕
-            </button>
-            <Login />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
