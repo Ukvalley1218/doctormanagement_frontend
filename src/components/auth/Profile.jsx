@@ -133,16 +133,20 @@ const Profile = ({ onLoginSuccess }) => {
 
     try {
       setSaveing(true);
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("apartment", formData.apartment);
-      formDataToSend.append("landmark", formData.landmark);
-      formDataToSend.append("address", formData.address);
-      formDataToSend.append("city", formData.city);
-      formDataToSend.append("state", formData.state);
-      formDataToSend.append("zip", formData.zip);
+      const updatePayload = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: {
+          apartment: formData.apartment,
+          landmark: formData.landmark,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+        },
+      };
+
       console.log(selectedImage);
       if (selectedImage) {
         try {
@@ -165,10 +169,7 @@ const Profile = ({ onLoginSuccess }) => {
         }
       }
 
-      const response = await apiClient.put(
-        `/users/${user._id}`,
-        formDataToSend
-      );
+      const response = await apiClient.put(`/users/${user._id}`, updatePayload);
 
       setUser(response.data);
       alert("Profile updated successfully!");
@@ -176,8 +177,8 @@ const Profile = ({ onLoginSuccess }) => {
     } catch (error) {
       console.error("Error updating user:", error.response || error.message);
       alert("Failed to update profile. Please try again.");
-    }finally{
-      setSaveing(false)
+    } finally {
+      setSaveing(false);
     }
   };
 
@@ -470,7 +471,7 @@ const Profile = ({ onLoginSuccess }) => {
               disabled={saveing}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
             >
-              {saveing ? 'Saving....' : 'Save Changes'}
+              {saveing ? "Saving...." : "Save Changes"}
             </button>
           </div>
         </div>

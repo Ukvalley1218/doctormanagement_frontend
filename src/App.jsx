@@ -66,39 +66,35 @@ function LayoutWithNavbar() {
     fetchData();
   }, []);
 
-  const stripePromise = loadStripe(`${setting?.stripepublishablekey}`); // publishable key
-
   return (
     <Navbar isLoggedIn={isLoggedIn} onLoginClick={() => setIsLoginOpen(true)}>
-      <Elements stripe={stripePromise}>
-        <Routes>
-          {isLoggedIn ? (
-            <Route path="/" element={<Dashboard />} />
-          ) : (
-            <Route path="/" element={<Home />} />
-          )}
+      <Routes>
+        {isLoggedIn ? (
+          <Route path="/" element={<Dashboard />} />
+        ) : (
+          <Route path="/" element={<Home />} />
+        )}
 
-          <Route path="/medicines" element={<Medicine />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route
-            path="/product_details/:productId"
-            element={<Product_details />}
-          />
-          <Route path="/appointment" element={<Appointment />} />
-          <Route path="/order" element={<Orders />} />
-          <Route path="/order_details/:order_id" element={<OrderDetails />} />
-          <Route path="/return_order/:order_id" element={<Return_order />} />
-          <Route
-            path="/book_appointment/:doctor_id"
-            element={<Appointment_details />}
-          />
-          <Route path="/checkout-success" element={<CheckoutSuccess />} />
-          <Route path="/apointment-success" element={<AppointmentSuccess />} />
-          <Route path="*" element={<div>Page Not Found</div>} />
-        </Routes>
-      </Elements>
+        <Route path="/medicines" element={<Medicine />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route
+          path="/product_details/:productId"
+          element={<Product_details />}
+        />
+        <Route path="/appointment" element={<Appointment />} />
+        <Route path="/order" element={<Orders />} />
+        <Route path="/order_details/:order_id" element={<OrderDetails />} />
+        <Route path="/return_order/:order_id" element={<Return_order />} />
+        <Route
+          path="/book_appointment/:doctor_id"
+          element={<Appointment_details />}
+        />
+        <Route path="/checkout-success" element={<CheckoutSuccess />} />
+        <Route path="/apointment-success" element={<AppointmentSuccess />} />
+        <Route path="*" element={<div>Page Not Found</div>} />
+      </Routes>
 
       {isLoginOpen && (
         <div className="fixed inset-0 z-[999] flex items-center p-2 justify-center">
