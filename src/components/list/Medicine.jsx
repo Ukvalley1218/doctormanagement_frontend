@@ -184,7 +184,7 @@ const Medicine = () => {
     <div className="min-h-screen">
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-0 mb-10">
         {/* Results Header */}
-        <div className="mb-4">
+        <div className="my-4">
           <p className="text-xl md:text-2xl font-bold text-[#2D3748]">
             Available Products ({totalProducts} results)
           </p>

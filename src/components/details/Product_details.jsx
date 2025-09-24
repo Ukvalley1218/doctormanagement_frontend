@@ -14,6 +14,7 @@ import {
   Star,
   User,
   ThumbsUp,
+  ArrowLeft,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../apiclient";
@@ -255,6 +256,16 @@ const Product_details = () => {
 
   return (
     <div className="min-h-screen">
+      <div className="mx-4 mt-4">
+
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back</span>
+        </button>
+      </div>
       <section className="py-8 px-4 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Image + Product Details Combined Section */}

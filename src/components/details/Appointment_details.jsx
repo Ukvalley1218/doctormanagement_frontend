@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Star, MapPin, Calendar, User, ThumbsUp } from "lucide-react";
+import { Star, MapPin, Calendar, User, ThumbsUp, ArrowLeft } from "lucide-react";
 import dr from "../../assets/images/dr.png";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../apiclient";
 import { InlineWidget } from "react-calendly";
 
@@ -17,6 +17,8 @@ const AppointmentDetails = () => {
   const [userComment, setUserComment] = useState("");
   const [userName, setUserName] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
+
+  const navigate = useNavigate();
 
   const mockReviews = [
     {
@@ -87,9 +89,8 @@ const AppointmentDetails = () => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
-        className={`${size} ${
-          index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-        }`}
+        className={`${size} ${index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+          }`}
       />
     ));
   };
@@ -98,9 +99,8 @@ const AppointmentDetails = () => {
     return Array.from({ length: 1 }, (_, index) => (
       <Star
         key={index}
-        className={`${size} ${
-          index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-        }`}
+        className={`${size} ${index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+          }`}
       />
     ));
   };
@@ -138,8 +138,8 @@ const AppointmentDetails = () => {
   const averageRating =
     totalReviews > 0
       ? (
-          reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
-        ).toFixed(1)
+        reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+      ).toFixed(1)
       : 0;
 
   // Update handleRatingSubmit to accept event
@@ -199,11 +199,10 @@ const AppointmentDetails = () => {
           onClick={() => isInteractive && setRating(starValue)}
           onMouseEnter={() => isInteractive && setHoveredRating(starValue)}
           onMouseLeave={() => isInteractive && setHoveredRating(0)}
-          className={`${size} cursor-pointer ${
-            starValue <= (hoveredRating || rating)
+          className={`${size} cursor-pointer ${starValue <= (hoveredRating || rating)
               ? "text-yellow-400 fill-current"
               : "text-gray-300"
-          }`}
+            }`}
         />
       );
     });
@@ -212,7 +211,18 @@ const AppointmentDetails = () => {
   return (
     <div className="">
       {/* Doctor Profile */}
-      <div className="bg-white rounded-xl shadow border border-gray-200 p-6 mb-6 mx-6 mt-8">
+      <div className="mx-6 mt-4">
+
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back</span>
+        </button>
+      </div>
+      <div className="bg-white rounded-xl shadow border border-gray-200 p-6 mb-6 mx-6 mt-6">
+
         <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
           {/* Image */}
           <div className="flex justify-center sm:justify-start">
@@ -296,10 +306,9 @@ const AppointmentDetails = () => {
                       style={{
                         width:
                           totalReviews > 0
-                            ? `${
-                                (ratingDistribution[rating] / totalReviews) *
-                                100
-                              }%`
+                            ? `${(ratingDistribution[rating] / totalReviews) *
+                            100
+                            }%`
                             : "0%",
                       }}
                     ></div>

@@ -16,7 +16,7 @@ import {
   User,
 } from "lucide-react";
 import logo from "../../assets/images/logo.png";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
 import apiClient from "../../../apiclient";
@@ -29,6 +29,7 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   const location = useLocation();
 
   useEffect(() => {
@@ -98,6 +99,43 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
     { icon: User, label: "Profile", link: "/profile" },
   ];
 
+
+  // search bar stuff
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState({ doctors: [], products: [] });
+  const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
+
+  // Fetch search suggestions
+  useEffect(() => {
+    if (query.length < 2) {
+      setResults({ doctors: [], products: [] });
+      return;
+    }
+
+    const fetchResults = async () => {
+      try {
+        const res = await apiClient.get(`/search?q=${query}`);
+        setResults(res.data);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error("Search error:", err);
+      }
+    };
+
+    const delayDebounce = setTimeout(fetchResults, 400); // debounce
+    return () => clearTimeout(delayDebounce);
+  }, [query]);
+
+  const handleSelect = (type, id) => {
+    setShowDropdown(false);
+    setQuery("");
+    if (type === "doctor") {
+      navigate(`../book_appointment/${id}`);
+    } else {
+      navigate(`../product_details/${id}`);
+    }
+  };
   // Regular navbar for non-logged-in users
   if (!isLoggedIn) {
     return (
@@ -117,31 +155,65 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
             <div className="flex items-center gap-3 md:gap-4">
               {/* Search Bar */}
               <div className="relative">
-                <input
+              <input
                   type="text"
-                  placeholder="Search doctors, medicines, etc."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0066CC] focus:border-transparent"
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  onChange={(e) => {
-                    const query = e.target.value;
-                    if (query.trim()) {
-                      // Navigate to search results page or filter current page
-                      if (location.pathname.includes("/medicine")) {
-                        // Trigger search in medicine page
-                        window.dispatchEvent(
-                          new CustomEvent("search", { detail: query })
-                        );
-                      } else if (location.pathname.includes("/doctor")) {
-                        // Trigger search in doctor page
-                        window.dispatchEvent(
-                          new CustomEvent("search", { detail: query })
-                        );
-                      }
-                    }
-                  }}
+                  placeholder="Search medicines and doctors..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => query && setShowDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // delay for click
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
                 />
                 <Search className="h-5 w-5 absolute left-3 top-2.5 text-gray-400" />
+
+
+                {/* Dropdown */}
+                {showDropdown && (results.doctors.length > 0 || results.products.length > 0) && (
+                  <div className="absolute mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                    {/* Doctors */}
+                    {results.doctors.length > 0 && (
+                      <div>
+                        <p className="px-3 py-2 text-sm font-semibold text-gray-600">Doctors</p>
+                        {results.doctors.map((doc) => (
+                          <div
+                            key={doc._id}
+                            onMouseDown={() => handleSelect("doctor", doc._id)}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <img
+                              src={doc.image || "/doctor-placeholder.png"}
+                              alt={doc.name}
+                              className="w-8 h-8 rounded-full mr-2"
+                            />
+                            <span className="text-sm">{doc.name} — {doc.specialty}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Products */}
+                    {results.products.length > 0 && (
+                      <div>
+                        <p className="px-3 py-2 text-sm font-semibold text-gray-600">Products</p>
+                        {results.products.map((prod) => (
+                          <div
+                            key={prod._id}
+                            onMouseDown={() => handleSelect("product", prod._id)}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <img
+                              src={prod.mainImage || "/product-placeholder.png"}
+                              alt={prod.name}
+                              className="w-8 h-8 rounded mr-2"
+                            />
+                            <span className="text-sm">{prod.name} — ₹{prod.sellingPrice}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button
@@ -264,11 +336,10 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
               {sidebarItems.map((item, index) => (
                 <Link key={index} to={item.link}>
                   <button
-                    className={`w-full flex cursor-pointer items-center px-4 py-3 text-left rounded-lg transition-colors ${
-                      isActiveRoute(item.link)
-                        ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
+                    className={`w-full flex cursor-pointer items-center px-4 py-3 text-left rounded-lg transition-colors ${isActiveRoute(item.link)
+                      ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
+                      : "text-gray-600 hover:bg-gray-50"
+                      }`}
                   >
                     <item.icon className="h-5 w-5 mr-3" />
                     {item.label}
@@ -330,11 +401,10 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                     onClick={() => setIsSidebarOpen(false)}
                   >
                     <button
-                      className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${
-                        isActiveRoute(item.link)
-                          ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
+                      className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${isActiveRoute(item.link)
+                        ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
+                        : "text-gray-600 hover:bg-gray-50"
+                        }`}
                     >
                       <item.icon className="h-5 w-5 mr-3" />
                       {item.label}
@@ -376,9 +446,60 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                   <input
                     type="text"
                     placeholder="Search medicines and doctors..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onFocus={() => query && setShowDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // delay for click
                     className="w-50 lg:w-80 xl:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <Search className="h-5 w-5 absolute left-3 top-2.5 text-gray-400" />
+
+                  {/* Dropdown */}
+                  {showDropdown && (results.doctors.length > 0 || results.products.length > 0) && (
+                    <div className="absolute mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                      {/* Doctors */}
+                      {results.doctors.length > 0 && (
+                        <div>
+                          <p className="px-3 py-2 text-sm font-semibold text-gray-600">Doctors</p>
+                          {results.doctors.map((doc) => (
+                            <div
+                              key={doc._id}
+                              onMouseDown={() => handleSelect("doctor", doc._id)}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <img
+                                src={doc.image || "/doctor-placeholder.png"}
+                                alt={doc.name}
+                                className="w-8 h-8 rounded-full mr-2"
+                              />
+                              <span className="text-sm">{doc.name} — {doc.specialty}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Products */}
+                      {results.products.length > 0 && (
+                        <div>
+                          <p className="px-3 py-2 text-sm font-semibold text-gray-600">Products</p>
+                          {results.products.map((prod) => (
+                            <div
+                              key={prod._id}
+                              onMouseDown={() => handleSelect("product", prod._id)}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                            >
+                              <img
+                                src={prod.mainImage || "/product-placeholder.png"}
+                                alt={prod.name}
+                                className="w-8 h-8 rounded mr-2"
+                              />
+                              <span className="text-sm">{prod.name} — ₹{prod.sellingPrice}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -443,10 +564,63 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                 <input
                   type="text"
                   placeholder="Search medicines and doctors..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onFocus={() => query && setShowDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)} // delay for click
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   autoFocus
                 />
                 <Search className="h-5 w-5 absolute left-3 top-2.5 text-gray-400" />
+
+
+                {/* Dropdown */}
+                {showDropdown && (results.doctors.length > 0 || results.products.length > 0) && (
+                  <div className="absolute mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                    {/* Doctors */}
+                    {results.doctors.length > 0 && (
+                      <div>
+                        <p className="px-3 py-2 text-sm font-semibold text-gray-600">Doctors</p>
+                        {results.doctors.map((doc) => (
+                          <div
+                            key={doc._id}
+                            onMouseDown={() => handleSelect("doctor", doc._id)}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <img
+                              src={doc.image || "/doctor-placeholder.png"}
+                              alt={doc.name}
+                              className="w-8 h-8 rounded-full mr-2"
+                            />
+                            <span className="text-sm">{doc.name} — {doc.specialty}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Products */}
+                    {results.products.length > 0 && (
+                      <div>
+                        <p className="px-3 py-2 text-sm font-semibold text-gray-600">Products</p>
+                        {results.products.map((prod) => (
+                          <div
+                            key={prod._id}
+                            onMouseDown={() => handleSelect("product", prod._id)}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                          >
+                            <img
+                              src={prod.mainImage || "/product-placeholder.png"}
+                              alt={prod.name}
+                              className="w-8 h-8 rounded mr-2"
+                            />
+                            <span className="text-sm">{prod.name} — ₹{prod.sellingPrice}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
               </div>
             </div>
           )}
