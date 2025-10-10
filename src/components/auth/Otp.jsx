@@ -83,7 +83,7 @@ const OTP = (props) => {
       if (typeof onLoginSuccess === "function") {
         onLoginSuccess();
       }
-      navigation("/");
+      // navigation(-1);
     } catch (error) {
       console.log(error.response);
 
@@ -123,7 +123,7 @@ const OTP = (props) => {
 
       alert("OTP Send Successfully")
     } catch (error) {
-      console.log(error?.response);
+      console.log(error);
       alert(error?.response?.data?.message || "Failed to send OTP");
     }
   };
@@ -144,7 +144,7 @@ const OTP = (props) => {
       {/* Right Side */}
       <div className="w-full bg-gray-50 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="rounded-2xl p-3">
+          <div className="rounded-2xl">
             <div className="flex justify-center">
               <img src={logo} alt="HealCure Logo" className="w-50" />
             </div>

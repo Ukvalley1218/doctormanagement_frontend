@@ -41,7 +41,7 @@ const Orders = () => {
     fetchUser();
   }, []);
 
-    const handlePageChange = (page) => {
+  const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setPage(page);
     }
@@ -293,6 +293,7 @@ const Orders = () => {
   const totalAmount =
     orderdata && orderdata.length > 0
       ? orderdata
+          .filter((order) => order.status?.toLowerCase() !== "cancelled") // ✅ skip cancelled
           .reduce((sum, order) => sum + (order.totalAmount || 0), 0)
           .toFixed(2)
       : "0.00";

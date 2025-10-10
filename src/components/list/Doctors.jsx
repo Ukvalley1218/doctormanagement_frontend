@@ -5,9 +5,16 @@ import Login from "../auth/Login";
 import dr from "../../assets/images/dr.png";
 import dr1 from "../../assets/images/dr1.png";
 import dr2 from "../../assets/images/dr2.png";
-import { Star, MapPin, Clock, DollarSign, ChevronDown } from "lucide-react";
+import {
+  Star,
+  MapPin,
+  Clock,
+  DollarSign,
+  ChevronDown,
+  ArrowLeft,
+} from "lucide-react";
 import apiClient from "../../../apiclient";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Doctors = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,7 +30,9 @@ const Doctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  
+
+  const navigate = useNavigate();
+
   // Server-side pagination state
   const [totalDoctors, setTotalDoctors] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -46,19 +55,19 @@ const Doctors = () => {
   const fetchdoctordata = async (page = 1, search = "", sort = "Rating") => {
     try {
       setLoading(true);
-      
+
       // Build query parameters for server-side pagination
       const params = new URLSearchParams({
         page: page.toString(),
         limit: doctorsPerPage.toString(),
         search: search.trim(),
-        sortBy: sort
+        sortBy: sort,
       });
 
       const response = await apiClient.get(`/doctors?${params}`);
-      
+
       console.log(response.data);
-      
+
       // Assuming your API returns something like:
       // {
       //   doctors: [...],
@@ -66,16 +75,15 @@ const Doctors = () => {
       //   currentPage: 1,
       //   totalPages: 9
       // }
-      
+
       setDoctors(response.data.doctors || []);
       setTotalDoctors(response.data.totalDoctors || 0);
       setTotalPages(response.data.totalPages || 0);
-      
+
       // If your API doesn't return totalPages, calculate it
       if (!response.data.totalPages && response.data.totalCount) {
         setTotalPages(Math.ceil(response.data.totalCount / doctorsPerPage));
       }
-      
     } catch (error) {
       console.log(error);
       setDoctors([]);
@@ -149,10 +157,18 @@ const Doctors = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <p className="text-xl text-left md:text-2xl font-bold text-[#2D3748]">
+            {/* <p className="text-xl text-left md:text-2xl font-bold text-[#2D3748]">
               Available Doctors ({totalDoctors} results)
-            </p>
-
+            </p> */}
+            <div className="mx-6 mt-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+              </button>
+            </div>
             {/* Sort Dropdown */}
             <div className="relative">
               <button
@@ -287,7 +303,10 @@ const Doctors = () => {
           {/* Page Info */}
           {totalPages > 1 && (
             <div className="text-center mt-4 text-sm text-gray-600">
-              Showing {Math.min((currentPage - 1) * doctorsPerPage + 1, totalDoctors)} - {Math.min(currentPage * doctorsPerPage, totalDoctors)} of {totalDoctors} doctors (Page {currentPage} of {totalPages})
+              Showing{" "}
+              {Math.min((currentPage - 1) * doctorsPerPage + 1, totalDoctors)} -{" "}
+              {Math.min(currentPage * doctorsPerPage, totalDoctors)} of{" "}
+              {totalDoctors} doctors (Page {currentPage} of {totalPages})
             </div>
           )}
         </div>

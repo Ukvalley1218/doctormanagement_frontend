@@ -86,15 +86,7 @@ function Home() {
     return cartItems.find((item) => item._id === productId);
   };
 
-  const categories = [
-    "All Categories",
-    "Pain Relief",
-    "Vitamins",
-    "Heart Health",
-    "Supplements",
-    "Cold & Flu",
-    "Allergy",
-  ];
+  const categories = ["All Categories", "ayurvedic", "alopathy", "homeopathic"];
   const priceSorts = [
     "Price: Low to High",
     "Price: High to Low",
@@ -104,7 +96,7 @@ function Home() {
 
   const fetchdata = async () => {
     try {
-      const response = await apiClient.get("/products");
+      const response = await apiClient.get("/products?limit=4");
       console.log(response.data);
       setProduct(response.data.products);
     } catch (error) {
@@ -114,7 +106,7 @@ function Home() {
 
   const fetchdoctordata = async () => {
     try {
-      const response = await apiClient.get("/doctors");
+      const response = await apiClient.get("/doctors?limit=3");
       console.log(response.data.doctors);
       setDoctors(response.data.doctors);
     } catch (error) {
@@ -368,7 +360,10 @@ function Home() {
                       <p className="text-gray-600 text-left text-xs mb-1">
                         {product.description} <br /> {product.brand}
                       </p>
+                    </Link>
 
+                    {/* Cart Controls pinned at bottom */}
+                    <div className="mt-auto">
                       {/* Price + Stock */}
                       <div className="flex flex-row justify-between items-center mb-4">
                         <div className="flex items-center gap-2">
@@ -390,10 +385,6 @@ function Home() {
                           </p>
                         </div>
                       </div>
-                    </Link>
-
-                    {/* Cart Controls pinned at bottom */}
-                    <div className="mt-auto">
                       {(() => {
                         const cartItem = getCartItem(product._id);
                         if (cartItem && cartItem.quantity > 0) {

@@ -1,5 +1,5 @@
 // 1. Import the necessary components from react-router-dom
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 // import "./App.css";
 import Home from "./components/home/Home";
 import Login from "./components/auth/Login";
@@ -25,6 +25,8 @@ import { useEffect, useState } from "react";
 import apiClient from "../apiclient";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
+import TermsAndConditions from "./components/information/terms";
+import PrivacyPolicy from "./components/information/privacy";
 
 function App() {
   return (
@@ -48,6 +50,7 @@ function App() {
 
 // Layout component that includes the Navbar and renders children
 function LayoutWithNavbar() {
+  const navigate = useNavigate();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [login, setLogin] = useState(false);
   const [setting, setSetting] = useState(null);
@@ -62,6 +65,10 @@ function LayoutWithNavbar() {
     }
   };
 
+  // if(isLoggedIn){
+  //   navigate(-1);
+  // }
+  
   useEffect(() => {
     fetchData();
   }, []);
@@ -93,6 +100,8 @@ function LayoutWithNavbar() {
         />
         <Route path="/checkout-success" element={<CheckoutSuccess />} />
         <Route path="/apointment-success" element={<AppointmentSuccess />} />
+        <Route path="/terms_condition" element={<TermsAndConditions />} />
+        <Route path="/privacy_policy" element={<PrivacyPolicy />} />
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
 
@@ -125,6 +134,7 @@ function LayoutWithNavbar() {
               onLoginSuccess={() => {
                 setLogin(true);
                 setIsLoginOpen(false);
+                // navigate(-1);
               }}
             />
           </div>

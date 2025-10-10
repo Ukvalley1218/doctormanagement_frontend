@@ -319,12 +319,13 @@ export const CartProvider = ({ children }) => {
           discount: response.data.discountPercentage || 0,
         },
       });
+      return response.data.discountPercentage
     } catch (error) {
       console.error(
         "Failed to apply promo code:",
         error.response?.data || error.message
       );
-      alert(response.data?.message || "Invalid promo code");
+      alert(error.response.data?.message || "Invalid promo code");
       dispatch({
         type: "APPLY_PROMO_CODE",
         payload: { code: "", discount: 0 },

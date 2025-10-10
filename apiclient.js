@@ -2,7 +2,7 @@ import axios from "axios";
 import { loadingManager } from "./src/contexts/LoadingContext";
 
 const apiClient = axios.create({
-  baseURL: "https://doctormanagement-2p8n.onrender.com/api",
+  baseURL: "https://vps.healcure.ca/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -15,7 +15,7 @@ apiClient.interceptors.request.use((config) => {
     loadingManager.increment();
     // Get the token from localStorage (React.js equivalent of AsyncStorage)
     const token = localStorage.getItem("Token");
-    console.log(token);
+    // console.log(token);
     // If the token exists, add it to the Authorization header
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

@@ -31,9 +31,7 @@ const OrderDetails = () => {
   };
 
   return (
-    
     <div className="max-w-6xl mx-auto p-4 mt-10 sm:p-4 lg:p-4 rounded bg-white">
-      
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
         <div className="text-left">
@@ -48,7 +46,7 @@ const OrderDetails = () => {
           className="flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 w-full sm:w-auto justify-center"
           onClick={() =>
             window.open(
-              `https://doctormanagement-2p8n.onrender.com/api/orders/invoice/${orderData.orderId}`,
+              `https://vps.healcure.ca/api/orders/invoice/${orderData.orderId}`,
               "_blank"
             )
           }
@@ -83,69 +81,73 @@ const OrderDetails = () => {
         </div>
 
         {/* Progress Timeline */}
-        {/* Progress Timeline */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 sm:gap-0">
-          {["Placed", "Confirmed", "Out For Delivery", "Delivered", "Cancelled"].map(
-            (status, index, arr) => {
-              // If your API gives trackingHistory with timestamps
-              const step = orderData?.trackingHistory?.find(
-                (s) => s.status === status
-              );
+          {[
+            "Placed",
+            "Confirmed",
+            "Out For Delivery",
+            "Delivered",
+            "Cancelled",
+          ].map((status, index, arr) => {
+            // If your API gives trackingHistory with timestamps
+            const step = orderData?.trackingHistory?.find(
+              (s) => s.status === status
+            );
 
-              // Otherwise, fall back to matching just orderStatus
-              const isCompleted = step || orderData?.orderStatus === status;
-              const isLast = index === arr.length - 1;
+            // Otherwise, fall back to matching just orderStatus
+            const isCompleted = step || orderData?.orderStatus === status;
+            const isLast = index === arr.length - 1;
 
-              // Decide circle color
-              let circleColor = "bg-gray-300";
-              if (isCompleted) {
-                if (status === "Cancelled") circleColor = "bg-red-500";
-                else if (status === "Delivered") circleColor = "bg-green-500";
-                else if (status === "Placed") circleColor = "bg-blue-500";
-                else if (status === "Confirmed") circleColor = "bg-blue-500";
-                else if (status === "Out For Delivery") circleColor = "bg-blue-500";
-                // else circleColor = "bg-blue-500";
-              }
-
-              return (
-                <div
-                  key={status}
-                  className="flex-1 flex flex-col items-center relative"
-                >
-                  {/* Circle Indicator */}
-                  <div
-                    className={`w-8 h-8 ${circleColor} rounded-full flex items-center justify-center mb-2`}
-                  >
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-
-                  {/* Title & Date */}
-                  <p className="text-xs font-medium text-gray-900 text-center">
-                    {status}
-                  </p>
-                  <p className="text-xs text-gray-500 text-center">
-                    {step
-                      ? new Date(step.timestamp).toLocaleString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : ""}
-                  </p>
-
-                  {/* Connector Line */}
-                  {index < arr.length - 1 && (
-                    <div
-                      className={`hidden sm:block absolute top-4 left-1/2 w-full h-0.5 ${
-                        isCompleted ? "bg-blue-500" : "bg-gray-300"
-                      } -translate-y-1/2 z-[-1]`}
-                    />
-                  )}
-                </div>
-              );
+            // Decide circle color
+            let circleColor = "bg-gray-300";
+            if (isCompleted) {
+              if (status === "Cancelled") circleColor = "bg-red-500";
+              else if (status === "Delivered") circleColor = "bg-green-500";
+              else if (status === "Placed") circleColor = "bg-blue-500";
+              else if (status === "Confirmed") circleColor = "bg-blue-500";
+              else if (status === "Out For Delivery")
+                circleColor = "bg-blue-500";
+              // else circleColor = "bg-blue-500";
             }
-          )}
+
+            return (
+              <div
+                key={status}
+                className="flex-1 flex flex-col items-center relative"
+              >
+                {/* Circle Indicator */}
+                <div
+                  className={`w-8 h-8 ${circleColor} rounded-full flex items-center justify-center mb-2`}
+                >
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+
+                {/* Title & Date */}
+                <p className="text-xs font-medium text-gray-900 text-center">
+                  {status}
+                </p>
+                <p className="text-xs text-gray-500 text-center">
+                  {step
+                    ? new Date(step.timestamp).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </p>
+
+                {/* Connector Line */}
+                {index < arr.length - 1 && (
+                  <div
+                    className={`hidden sm:block absolute top-4 left-1/2 w-full h-0.5 ${
+                      isCompleted ? "bg-blue-500" : "bg-gray-300"
+                    } -translate-y-1/2 z-[-1]`}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -168,8 +170,8 @@ const OrderDetails = () => {
                 <div className="flex items-start gap-4 text-left">
                   <div className="w-12 h-12 bg-blue-100 mt-2 rounded-lg flex items-center justify-center overflow-hidden">
                     <img
-                      src={order.productId.mainImage}
-                      alt={order.productId.name}
+                      src={order?.productId?.mainImage}
+                      alt={order?.productId?.name}
                       className="w-full h-full object-contain"
                     />
                   </div>
@@ -177,7 +179,7 @@ const OrderDetails = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium text-gray-900">
-                        {order.productId.name}
+                        {order?.productId?.name}
                       </h4>
                       {order.status === "returned" && (
                         <span className="hidden lg:block bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -186,21 +188,21 @@ const OrderDetails = () => {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {order.productId.category}
+                      {order?.productId?.category}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Mfg: {order.productId.brand}
+                      Mfg: {order?.productId?.brand}
                     </p>
                   </div>
 
                   <div className="text-left">
                     <p className="text-sm text-center text-gray-600">
-                      Qty: {order.quantity}
+                      Qty: {order?.quantity}
                     </p>
                     <p className="font-medium text-center text-gray-900">
-                      ${order.productId.actualPrice.toFixed(2)}
+                      ${order?.productId?.actualPrice.toFixed(2)}
                     </p>
-                    {order.status === "returned" && (
+                    {order?.status === "returned" && (
                       <p className="lg:hidden bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium">
                         Returned
                       </p>
@@ -285,10 +287,18 @@ const OrderDetails = () => {
               Need Help?
             </h3>
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
+              <button
+                className="w-full flex items-center justify-center gap-2 px-4 cursor-pointer py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                onClick={() =>
+                  window.open(
+                    "https://tawk.to/chat/68d584746d94701951d027a1/1j610qs3d",
+                  )
+                }
+              >
                 <HelpCircle size={16} />
                 Contact Support
               </button>
+
               {orderData && orderData.orderStatus === "Delivered" && (
                 <Link to={`/return_order/${order_id}`}>
                   <button className="w-full flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200">

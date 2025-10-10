@@ -74,9 +74,15 @@ const Profile = ({ onLoginSuccess }) => {
   };
 
   // Handle image select
+  // Handle image select
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (2MB = 2 * 1024 * 1024 bytes)
+      if (file.size > 1 * 1024 * 1024) {
+        alert("Image size should not exceed 1MB.");
+        return;
+      }
       setSelectedImage(file);
     }
   };
@@ -462,14 +468,14 @@ const Profile = ({ onLoginSuccess }) => {
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
             <button
               onClick={handleCancel}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 cursor-pointer text-gray-700 rounded-lg font-medium hover:bg-gray-50"
             >
-              Cancel
+              Reset
             </button>
             <button
               onClick={handleSaveChanges}
               disabled={saveing}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+              className="px-6 py-2 bg-blue-600 text-white cursor-pointer rounded-lg font-medium hover:bg-blue-700"
             >
               {saveing ? "Saving...." : "Save Changes"}
             </button>
@@ -480,7 +486,7 @@ const Profile = ({ onLoginSuccess }) => {
         <div className="p-6 border-t border-gray-200 flex justify-center">
           <button
             onClick={handleLogout}
-            className="px-10 py-2 bg-red-500 text-white rounded-full font-medium hover:bg-red-600"
+            className="px-10 py-2 bg-red-500 text-white cursor-pointer rounded-full font-medium hover:bg-red-600"
           >
             Logout
           </button>

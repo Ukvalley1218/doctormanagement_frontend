@@ -6,9 +6,10 @@ import {
   Check,
   Plus,
   Minus,
+  ArrowLeft,
 } from "lucide-react";
 import Footer from "../navigation/Footer";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import apiClient from "../../../apiclient";
 
@@ -26,6 +27,7 @@ const Medicine = () => {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Server-side pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,23 +44,28 @@ const Medicine = () => {
   }, []);
 
   // Server-side pagination API call
-  const loadProducts = async (page = 1, search = "", category = "All Categories", sort = "Price: Low to High") => {
+  const loadProducts = async (
+    page = 1,
+    search = "",
+    category = "All Categories",
+    sort = "Price: Low to High"
+  ) => {
     try {
       setLoading(true);
-      
+
       // Build query parameters for server-side pagination
       const params = new URLSearchParams({
         page: page.toString(),
         limit: pageSize.toString(),
         search: search.trim(),
         category: category === "All Categories" ? "" : category,
-        sortBy: sort
+        sortBy: sort,
       });
 
       const response = await apiClient.get(`/products?${params}`);
-      
+
       console.log(response.data);
-      
+
       // Assuming your API returns something like:
       // {
       //   products: [...],
@@ -66,18 +73,20 @@ const Medicine = () => {
       //   currentPage: 1,
       //   totalPages: 13
       // }
-      
+
       setProducts(response.data.products || []);
       setTotalProducts(response.data.totalCount || 0);
       setTotalPages(response.data.totalPages || 0);
-      
+
       // If your API doesn't return totalPages, calculate it
       if (!response.data.totalPages && response.data.totalCount) {
         setTotalPages(Math.ceil(response.data.totalCount / pageSize));
       }
-      
     } catch (error) {
-      console.error("Failed to fetch products", error.response?.data || error.message);
+      console.error(
+        "Failed to fetch products",
+        error.response?.data || error.message
+      );
       setProducts([]);
       setTotalProducts(0);
       setTotalPages(0);
@@ -123,12 +132,9 @@ const Medicine = () => {
 
   const categories = [
     "All Categories",
-    "Pain Relief",
-    "Vitamins",
-    "Heart Health",
-    "Supplements",
-    "Cold & Flu",
-    "Allergy",
+    "ayurvedic",
+    "alopathy",
+    "homeopathic",
   ];
 
   const priceSorts = [
@@ -184,12 +190,20 @@ const Medicine = () => {
     <div className="min-h-screen">
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-0 mb-10">
         {/* Results Header */}
-        <div className="my-4">
+        {/* <div className="my-4">
           <p className="text-xl md:text-2xl font-bold text-[#2D3748]">
             Available Products ({totalProducts} results)
           </p>
+        </div> */}
+        <div className="mx-6 mt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
         </div>
-
         {/* Filter Bar */}
         <div className="bg-white rounded-lg p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
@@ -289,35 +303,35 @@ const Medicine = () => {
                     </p>
 
                     {/* Price and Stock */}
-                    <div className="flex flex-row justify-between items-center mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold text-[#2D3748]">
-                          ${product.sellingPrice}
-                        </span>
-                        {product.actualPrice && (
-                          <span className="text-sm text-gray-500 line-through">
-                            ${product.actualPrice}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        {(() => {
-                          const s = getStockStyle(product.stock);
-                          return (
-                            <p
-                              className={`text-sm font-medium px-3 py-1 rounded-full ${s.textColor} ${s.bgColor}`}
-                            >
-                              {s.text}
-                            </p>
-                          );
-                        })()}
-                      </div>
-                    </div>
                   </div>
                 </Link>
 
                 {/* Cart Controls */}
                 <div className="p-4 mt-auto">
+                  <div className="flex flex-row justify-between items-center mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold text-[#2D3748]">
+                        ${product.sellingPrice}
+                      </span>
+                      {product.actualPrice && (
+                        <span className="text-sm text-gray-500 line-through">
+                          ${product.actualPrice}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      {(() => {
+                        const s = getStockStyle(product.stock);
+                        return (
+                          <p
+                            className={`text-sm font-medium px-3 py-1 rounded-full ${s.textColor} ${s.bgColor}`}
+                          >
+                            {s.text}
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  </div>
                   {(() => {
                     const cartItem = cartItems.find(
                       (item) => item._id === product._id
@@ -420,7 +434,9 @@ const Medicine = () => {
         {/* Page Info */}
         {totalPages > 1 && (
           <div className="text-center mt-4 text-sm text-gray-600">
-            Showing {Math.min((currentPage - 1) * pageSize + 1, totalProducts)} - {Math.min(currentPage * pageSize, totalProducts)} of {totalProducts} products (Page {currentPage} of {totalPages})
+            Showing {Math.min((currentPage - 1) * pageSize + 1, totalProducts)}{" "}
+            - {Math.min(currentPage * pageSize, totalProducts)} of{" "}
+            {totalProducts} products (Page {currentPage} of {totalPages})
           </div>
         )}
       </section>

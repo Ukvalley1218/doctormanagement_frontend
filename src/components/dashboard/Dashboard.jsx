@@ -283,13 +283,13 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="p-6">
-              <div className="relative mb-6">
+              {/* <div className="relative mb-6">
                 <input
                   type="text"
                   placeholder="Search medicines and doctors..."
                   className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-              </div>
+              </div> */}
               <div className="space-y-4">
                 {medicines.map((medicine) => {
                   const cartItem = getCartItem(medicine._id);
@@ -297,22 +297,38 @@ const Dashboard = () => {
                   return (
                     <div
                       key={medicine._id}
-                      className="lg:flex items-center justify-between p-4 border border-gray-100 rounded-lg"
+                      className="flex flex-col lg:flex-row items-center justify-between gap-4 p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow bg-white"
                     >
-                      <div className="flex-1">
+                      {/* Image */}
+                      <Link to={`/product_details/${medicine._id}`}>
+                        <div className="flex-shrink-0">
+                          <img
+                            src={medicine?.mainImage}
+                            alt={medicine.name}
+                            className="w-24 h-24 rounded-xl cursor-pointer object-contain bg-gray-50 p-2"
+                          />
+                        </div>
+                      </Link>
+                      {/* Content */}
+                      <div className="flex flex-col flex-1 w-full">
                         <Link to={`/product_details/${medicine._id}`}>
-                          <h3 className="font-semibold text-left text-gray-900">
+                          <h3 className="font-semibold text-gray-900 text-md text-left">
                             {medicine.name}
                           </h3>
-                          <p className="text-sm text-left text-gray-500">
-                            {medicine.category || medicine.type} •{" "}
-                            {medicine.description || medicine.packSize}
-                          </p>
+                          {medicine.category || medicine.description ? (
+                            <p className="text-sm text-gray-500 text-left mt-1">
+                              {/* {medicine.category} */}
+                              {/* {medicine.description || medicine.packSize} */}
+                            </p>
+                          ) : null}
                         </Link>
-                        <div className="flex justify-between lg:flex-1 items-center mt-3">
-                          <p className="text-lg text-left font-semibold text-green-600 mt-1">
+
+                        {/* Price and Actions */}
+                        <div className="flex justify-between items-center mt-3">
+                          <p className="text-lg font-semibold text-green-600">
                             ${medicine.sellingPrice}
                           </p>
+
                           {cartItem && cartItem.quantity > 0 ? (
                             <div className="flex items-center gap-2">
                               <button
@@ -322,13 +338,17 @@ const Dashboard = () => {
                                     cartItem.quantity - 1
                                   )
                                 }
-                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
                               >
-                                <span className="text-gray-600 text-sm">-</span>
+                                <span className="text-gray-700 text-sm font-semibold">
+                                  -
+                                </span>
                               </button>
+
                               <span className="w-8 text-center font-medium text-sm">
                                 {cartItem.quantity}
                               </span>
+
                               <button
                                 onClick={() =>
                                   updateQuantity(
@@ -336,10 +356,13 @@ const Dashboard = () => {
                                     cartItem.quantity + 1
                                   )
                                 }
-                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
                               >
-                                <span className="text-gray-600 text-sm">+</span>
+                                <span className="text-gray-700 text-sm font-semibold">
+                                  +
+                                </span>
                               </button>
+
                               <Link to="/cart">
                                 <button className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors">
                                   <Check className="w-4 h-4" />
@@ -349,9 +372,10 @@ const Dashboard = () => {
                           ) : (
                             <button
                               onClick={() => handleAddToCart(medicine)}
-                              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+                              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                             >
                               <ShoppingCart className="w-4 h-4" />
+                              <span>Add</span>
                             </button>
                           )}
                         </div>

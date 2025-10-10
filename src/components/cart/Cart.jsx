@@ -6,6 +6,8 @@ import {
   Trash2,
   ArrowLeft,
   Check,
+  ShoppingBag,
+  Package,
 } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -35,6 +37,7 @@ const Cart = () => {
   const [setting, setSetting] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submit, setSubmit] = useState(false);
+  const [promodiscount, setpromodiscount] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -100,12 +103,19 @@ const Cart = () => {
   const formatCurrency = (value) => `$${Number(value).toFixed(2)}`;
 
   // Calculate item discounted price
+  // Calculate item discounted price with both user discount and promo discount
   const getItemPrice = (item) => {
-    if (user?.userDiscount) {
-      const discountAmount = (item.actualPrice * user.userDiscount) / 100;
+    let totalDiscount = 0;
+
+    if (user?.userDiscount) totalDiscount += user.userDiscount;
+    if (promodiscount) totalDiscount += promodiscount;
+
+    if (totalDiscount > 0) {
+      const discountAmount = (item.actualPrice * totalDiscount) / 100;
       const discountedPrice = item.actualPrice - discountAmount;
       return discountedPrice * item.quantity;
     }
+
     return item.sellingPrice * item.quantity;
   };
 
@@ -119,18 +129,22 @@ const Cart = () => {
 
   const finalAmount = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + getItemPrice(item), 0);
-  }, [cartItems, user]);
+  }, [cartItems, user, promodiscount]);
 
   const discountAmount = useMemo(() => {
     return actualTotal - finalAmount;
   }, [actualTotal, finalAmount]);
 
-  const totalamount = finalAmount + (setting && setting[0]?.deliverfee);
+  const totalamount = useMemo(() => {
+    return finalAmount + (setting && setting[0]?.deliverfee);
+  }, [finalAmount, setting]);
 
   // Apply promo code
-  const handleApplyPromoCode = () => {
+  const handleApplyPromoCode = async () => {
     if (promoCodeInput.trim()) {
-      applyPromoCode(promoCodeInput.trim());
+      const promo = await applyPromoCode(promoCodeInput.trim());
+      console.log(promo);
+      setpromodiscount(promo);
       setPromoCodeInput("");
     }
   };
@@ -235,9 +249,110 @@ const Cart = () => {
     );
   }
 
+  // Empty Cart Design
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            {/* Header */}
+            <div className="border-b border-gray-100 p-6">
+              <div className="flex items-center gap-3">
+                <ShoppingCart className="w-6 h-6 text-blue-600" />
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Shopping Cart
+                </h1>
+              </div>
+            </div>
+
+            {/* Empty State Content */}
+            <div className="p-12 text-center">
+              <div className="max-w-md mx-auto">
+                {/* Icon */}
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <ShoppingBag className="w-12 h-12 text-gray-400" />
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                  Your cart is empty
+                </h2>
+
+                {/* Description */}
+                <p className="text-gray-600 mb-8 leading-relaxed">
+                  No products have been added to your cart yet. Browse our
+                  catalog and discover great deals on medicines and healthcare
+                  products.
+                </p>
+
+                {/* Action Buttons */}
+                <div className="space-y-4">
+                  <Link to="/medicines">
+                    <button className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Browse Products
+                    </button>
+                  </Link>
+
+                  <Link to="/">
+                    <button className="w-full border mt-3 cursor-pointer border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                      <ArrowLeft className="w-4 h-4" />
+                      Back to Home
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="border-t border-gray-100 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-blue-50 rounded-full flex items-center justify-center">
+                    <ShoppingCart className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-800 mb-1">
+                    Easy Shopping
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Browse and add products to cart with ease
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-green-50 rounded-full flex items-center justify-center">
+                    <Package className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-800 mb-1">
+                    Fast Delivery
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Quick and reliable delivery to your doorstep
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 mx-auto mb-3 bg-purple-50 rounded-full flex items-center justify-center">
+                    <Check className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="font-medium text-gray-800 mb-1">
+                    Quality Products
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Authentic medicines from trusted sources
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* --- cart items and order summary unchanged --- */}
+      {/* Cart Items and Order Summary */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-6">
@@ -252,76 +367,70 @@ const Cart = () => {
             </div>
 
             <div className="flex gap-4 overflow-x-auto pb-2 sm:pb-0 sm:flex-col sm:gap-4 sm:overflow-visible">
-              {cartItems.length === 0 ? (
-                <p className="text-gray-500 text-center w-full">
-                  Your cart is empty
-                </p>
-              ) : (
-                cartItems.map((item) => (
-                  <div
-                    key={item._id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-gray-100 rounded-lg bg-white"
-                  >
-                    <img
-                      src={item.mainImage}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-md mx-auto sm:mx-0"
-                    />
+              {cartItems.map((item) => (
+                <div
+                  key={item._id}
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border border-gray-100 rounded-lg bg-white"
+                >
+                  <img
+                    src={item.mainImage}
+                    alt={item.name}
+                    className="w-16 h-16 object-cover rounded-md mx-auto sm:mx-0"
+                  />
 
-                    <div className="flex-1 text-center sm:text-left">
-                      <h3 className="font-medium text-gray-800 text-sm sm:text-base">
-                        {item.name}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {item.subtitle}
-                      </p>
-                      <p className="text-xs text-gray-500">{item.pack}</p>
-                    </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="font-medium text-gray-800 text-sm sm:text-base">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {item.subtitle}
+                    </p>
+                    <p className="text-xs text-gray-500">{item.pack}</p>
+                  </div>
 
-                    {/* Quantity Controls */}
-                    <div className="flex justify-center items-center gap-2 sm:gap-3">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity - 1)
-                        }
-                        disabled={item.quantity <= 1}
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                      <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity + 1)
-                        }
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                      >
-                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-
-                    {/* Price */}
-                    <div className="text-center sm:text-right min-w-[80px]">
-                      <div className="font-semibold text-blue-600 text-sm sm:text-base">
-                        {formatCurrency(getItemPrice(item))}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-500 line-through">
-                        {formatCurrency(item.actualPrice * item.quantity)}
-                      </div>
-                    </div>
-
-                    {/* Remove */}
+                  {/* Quantity Controls */}
+                  <div className="flex justify-center items-center gap-2 sm:gap-3">
                     <button
-                      onClick={() => removeFromCart(item._id)}
-                      className="text-red-500 hover:text-red-700 p-1 sm:p-2 self-center"
+                      onClick={() =>
+                        updateQuantity(item._id, item.quantity - 1)
+                      }
+                      disabled={item.quantity <= 1}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </button>
+                    <span className="w-6 sm:w-8 text-center font-medium text-sm sm:text-base">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() =>
+                        updateQuantity(item._id, item.quantity + 1)
+                      }
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                    >
+                      <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
-                ))
-              )}
+
+                  {/* Price */}
+                  <div className="text-center sm:text-right min-w-[80px]">
+                    <div className="font-semibold text-blue-600 text-sm sm:text-base">
+                      {formatCurrency(getItemPrice(item))}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-500 line-through">
+                      {formatCurrency(item.actualPrice * item.quantity)}
+                    </div>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeFromCart(item._id)}
+                    className="text-red-500 hover:text-red-700 p-1 sm:p-2 self-center"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
@@ -357,10 +466,22 @@ const Cart = () => {
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Discount {user && `(${user?.userDiscount}%)`}</span>
+                  <span>
+                    Discount (
+                    {[
+                      user?.userDiscount ? `${user.userDiscount}% user` : null,
+                      promodiscount?.discount
+                        ? `${promodiscount.discount}% promo`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" + ")}
+                    )
+                  </span>
                   <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
+
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Fee</span>
                 <span>{formatCurrency(setting && setting[0].deliverfee)}</span>
@@ -395,33 +516,6 @@ const Cart = () => {
               )}
             </div>
 
-            {/* Delivery Options */}
-            {/* <div className="mb-6">
-              <h3 className="font-medium mb-3">Delivery Options</h3>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="standard"
-                    checked={deliveryOption === "standard"}
-                    onChange={(e) => setDeliveryOption(e.target.value)}
-                  />
-                  <span className="text-xs">Standard (2-3 days) - $5.99</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="delivery"
-                    value="express"
-                    checked={deliveryOption === "express"}
-                    onChange={(e) => setDeliveryOption(e.target.value)}
-                  />
-                  <span className="text-xs">Express (1 day) - $12.99</span>
-                </label>
-              </div>
-            </div> */}
-
             {/* Checkout */}
             <button
               onClick={() => {
@@ -444,6 +538,7 @@ const Cart = () => {
           </div>
         </div>
       </div>
+
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
