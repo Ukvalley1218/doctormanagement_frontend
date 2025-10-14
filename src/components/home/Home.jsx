@@ -258,8 +258,8 @@ function Home() {
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-0">
         {/* Filter Bar */}
         <div className="rounded-lg p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-            {/* Category Dropdown */}
+          {/* <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+           
             <div className="relative w-full sm:w-auto">
               <button
                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
@@ -286,7 +286,7 @@ function Home() {
               )}
             </div>
 
-            {/* Price Sort Dropdown */}
+            
             <div className="relative w-full sm:w-auto">
               <button
                 onClick={() => setShowPriceDropdown(!showPriceDropdown)}
@@ -313,14 +313,14 @@ function Home() {
               )}
             </div>
 
-            {/* Filter Button */}
+            
             <button className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto bg-[#0066CC] text-white rounded-md hover:bg-blue-700">
               <Filter className="h-4 w-4" />
               <span className="text-sm">Filter</span>
             </button>
-          </div>
+          </div> */}
 
-          {/* View All Medicines Button */}
+          
           <div className="flex justify-center sm:justify-end mt-4 md:-mt-11">
             <Link to="/medicines">
               <button className="px-5 py-2 cursor-pointer border border-[#0066CC] text-[#0066CC] rounded-md hover:bg-blue-50 transition-colors">
@@ -423,11 +423,10 @@ function Home() {
                           return (
                             <button
                               onClick={() => handleAddToCart(product)}
-                              className={`w-full cursor-pointer py-2 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
-                                product.stock === "Out of Stock"
+                              className={`w-full cursor-pointer py-2 px-4 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${product.stock === "Out of Stock"
                                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                   : "bg-[#0066CC] text-white hover:bg-blue-700"
-                              }`}
+                                }`}
                               disabled={product.stock <= "0"}
                             >
                               <ShoppingCart className="h-4 w-4" />

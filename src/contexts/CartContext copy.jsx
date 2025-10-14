@@ -259,20 +259,18 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  
   // Remove item (set quantity = 0)
   const removeFromCart = async (productId) => {
     dispatch({ type: "REMOVE_FROM_CART", payload: productId });
 
     try {
       const sessionId = localStorage.getItem("sessionId");
-      // Use POST instead of PUT and set quantity to 0
-      await apiClient.post("/cart", {
+      await apiClient.put("/cart", {
         session_id: sessionId,
         items: [
           {
             productId,
-            quantity: 0, // Set quantity to 0 to remove item
+            quantity: 0,
           },
         ],
       });
@@ -281,12 +279,6 @@ export const CartProvider = ({ children }) => {
         "Failed to remove item from server cart:",
         error.response?.data || error.message
       );
-      
-      // If server returns 404, try alternative approach
-      if (error.response?.status === 404) {
-        console.log("Trying alternative removal approach...");
-        await syncWithServer(); // Sync entire current state
-      }
     }
   };
 

@@ -6,14 +6,18 @@ import apiClient from "../../../apiclient";
 const OrderDetails = () => {
   const [orderData, setOrderdata] = useState(null);
   const { order_id } = useParams();
+  const [loading,setLoading]=useState(false);
 
   const fetchdata = async () => {
     try {
+      setLoading(true);
       const response = await apiClient.get(`/orders/${order_id}`);
       console.log(response.data);
       setOrderdata(response.data);
     } catch (error) {
       console.log(error.response);
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -30,6 +34,16 @@ const OrderDetails = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-6xl mx-auto p-4 mt-10 sm:p-4 lg:p-4 rounded bg-white">
       {/* Header Section */}

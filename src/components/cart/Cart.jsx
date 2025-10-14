@@ -135,9 +135,18 @@ const Cart = () => {
     return actualTotal - finalAmount;
   }, [actualTotal, finalAmount]);
 
+  // const totalamount = useMemo(() => {
+  //   return finalAmount + (setting && setting[0]?.deliverfee);
+  // }, [finalAmount, setting]);
+
   const totalamount = useMemo(() => {
-    return finalAmount + (setting && setting[0]?.deliverfee);
-  }, [finalAmount, setting]);
+    // Delivery fee logic
+    const deliveryFee =
+      actualTotal > 25 ? 0 : setting && setting[0]?.deliverfee;
+
+    return finalAmount + deliveryFee;
+  }, [finalAmount, setting, actualTotal]);
+
 
   // Apply promo code
   const handleApplyPromoCode = async () => {
@@ -201,6 +210,7 @@ const Cart = () => {
 
       const session_id = localStorage.getItem("sessionId");
 
+      const deliveryFee = actualTotal > 25 ? 0 : setting[0]?.deliverfee || 0;
       const placeOrderPayload = {
         shippingDetails: { ...form },
         items: cartItems.map((item) => ({
@@ -208,7 +218,7 @@ const Cart = () => {
           quantity: item.quantity,
         })),
         totalPrice: totalamount,
-        deliverfee: setting[0]?.deliverfee || 0,
+        deliverfee: deliveryFee,
         session_id,
         discountAmount: discountAmount,
         productValue: actualTotal,
@@ -230,7 +240,7 @@ const Cart = () => {
       console.error("Order placement failed:", error);
       alert(
         error?.response?.data?.message ||
-          "Unable to update this try again later"
+        "Unable to update this try again later"
       );
     } finally {
       setSubmit(false);
@@ -484,8 +494,13 @@ const Cart = () => {
 
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Fee</span>
-                <span>{formatCurrency(setting && setting[0].deliverfee)}</span>
+                {actualTotal > 25 ? (
+                  <span className="text-green-600">Free</span>
+                ) : (
+                  <span>{formatCurrency(setting && setting[0]?.deliverfee)}</span>
+                )}
               </div>
+
               <div className="border-t pt-3 flex justify-between font-semibold text-lg">
                 <span>Total</span>
                 <span>{formatCurrency(totalamount)}</span>
@@ -526,11 +541,10 @@ const Cart = () => {
                 setShowCheckout(true);
               }}
               disabled={cartItems.length === 0}
-              className={`w-full py-3 rounded-md font-medium flex items-center justify-center gap-2 ${
-                cartItems.length === 0
+              className={`w-full py-3 rounded-md font-medium flex items-center justify-center gap-2 ${cartItems.length === 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+                }`}
             >
               <ShoppingCart className="w-5 h-5" />
               {cartItems.length === 0 ? "Cart is Empty" : "Proceed to Payment"}

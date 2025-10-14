@@ -31,6 +31,8 @@ const Product_details = () => {
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isImageOpen, setIsImageOpen] = useState(false);
+
 
   // Rating system states
   const [reviews, setReviews] = useState([]);
@@ -124,9 +126,8 @@ const Product_details = () => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
-        className={`${size} ${
-          index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-        }`}
+        className={`${size} ${index < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+          }`}
       />
     ));
   };
@@ -145,11 +146,10 @@ const Product_details = () => {
           onClick={() => isInteractive && setRating(starValue)}
           onMouseEnter={() => isInteractive && setHoveredRating(starValue)}
           onMouseLeave={() => isInteractive && setHoveredRating(0)}
-          className={`${size} cursor-pointer ${
-            starValue <= (hoveredRating || rating)
+          className={`${size} cursor-pointer ${starValue <= (hoveredRating || rating)
               ? "text-yellow-400 fill-current"
               : "text-gray-300"
-          }`}
+            }`}
         />
       );
     });
@@ -219,8 +219,8 @@ const Product_details = () => {
   const averageRating =
     totalReviews > 0
       ? (
-          reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
-        ).toFixed(1)
+        reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+      ).toFixed(1)
       : 0;
   const ratingDistribution = getRatingDistribution();
 
@@ -272,11 +272,12 @@ const Product_details = () => {
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 bg-white rounded-lg p-6 shadow-sm">
             {/* Product Images Section */}
             <div className="">
-              <div className="mb-4">
+              <div className="mb-4 cursor-pointer">
                 <img
                   src={selectedImage}
                   alt={product.name}
                   className="w-full h-50 xl:h-80 object-contain rounded-lg"
+                  onClick={() => setIsImageOpen(true)}
                 />
               </div>
               <div className="flex gap-2 justify-center">
@@ -284,11 +285,10 @@ const Product_details = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(img)}
-                    className={`w-20 h-10 xl:h-16 border-2 rounded-lg overflow-hidden ${
-                      selectedImage === img
+                    className={`w-20 h-10 xl:h-16 border-2 rounded-lg overflow-hidden ${selectedImage === img
                         ? "border-blue-500"
                         : "border-gray-200"
-                    }`}
+                      }`}
                   >
                     <img
                       src={img}
@@ -354,7 +354,7 @@ const Product_details = () => {
                           {Math.round(
                             ((product.actualPrice - product.sellingPrice) /
                               product.actualPrice) *
-                              100
+                            100
                           )}
                           % OFF
                         </span>
@@ -412,11 +412,10 @@ const Product_details = () => {
                         <button
                           onClick={handleAddToCart}
                           disabled={product.stock <= 0}
-                          className={`w-full py-3 rounded-lg cursor-pointer font-medium flex items-center justify-center gap-2 transition-colors ${
-                            product.stock <= 0
+                          className={`w-full py-3 rounded-lg cursor-pointer font-medium flex items-center justify-center gap-2 transition-colors ${product.stock <= 0
                               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                               : "bg-blue-600 text-white hover:bg-blue-700"
-                          }`}
+                            }`}
                         >
                           <ShoppingCart className="h-5 w-5" />
                           {product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
@@ -424,11 +423,10 @@ const Product_details = () => {
                         <button
                           onClick={handleBuyNow}
                           disabled={product.stock <= 0}
-                          className={`w-full py-3 cursor-pointer rounded-lg font-medium transition-colors ${
-                            product.stock <= 0
+                          className={`w-full py-3 cursor-pointer rounded-lg font-medium transition-colors ${product.stock <= 0
                               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                               : "bg-orange-500 text-white hover:bg-orange-600"
-                          }`}
+                            }`}
                         >
                           {product.stock <= 0 ? "Out of Stock" : "Buy Now"}
                         </button>
@@ -559,11 +557,10 @@ const Product_details = () => {
                             style={{
                               width:
                                 totalReviews > 0
-                                  ? `${
-                                      (ratingDistribution[rating] /
-                                        totalReviews) *
-                                      100
-                                    }%`
+                                  ? `${(ratingDistribution[rating] /
+                                    totalReviews) *
+                                  100
+                                  }%`
                                   : "0%",
                             }}
                           ></div>
@@ -595,11 +592,10 @@ const Product_details = () => {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`py-4 px-1 cursor-pointer border-b-2 font-medium text-sm capitalize transition-colors ${
-                    activeTab === tab
+                  className={`py-4 px-1 cursor-pointer border-b-2 font-medium text-sm capitalize transition-colors ${activeTab === tab
                       ? "border-blue-500 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700"
-                  }`}
+                    }`}
                 >
                   {tab.replace("-", " ")}
                 </button>
@@ -822,6 +818,33 @@ const Product_details = () => {
           <div>
             <p className="font-medium">{product.name} added to cart!</p>
             <p className="text-sm opacity-90">Cart now has {cartCount} items</p>
+          </div>
+        </div>
+      )}
+      {/* Image Popup */}
+      {isImageOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+          onClick={() => setIsImageOpen(false)} // close on background click
+        >
+          <div
+            className="relative max-w-4xl w-full px-4"
+            onClick={(e) => e.stopPropagation()} // prevent closing when clicking the image
+          >
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-6 lg:top-[-8px] lg:right-[50px] text-black bg-white hover:text-white rounded-full py-2 px-4 hover:bg-black/70"
+              onClick={() => setIsImageOpen(false)}
+            >
+              ✕
+            </button>
+
+            {/* Enlarged Image */}
+            <img
+              src={selectedImage}
+              alt={product.name}
+              className="w-full h-auto max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            />
           </div>
         </div>
       )}

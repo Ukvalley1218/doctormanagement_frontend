@@ -195,7 +195,7 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                       className="w-8 h-8 rounded mr-2"
                     />
                     <span className="text-sm">
-                      {prod.name} — ₹{prod.sellingPrice}
+                      {prod.name} — ${prod.sellingPrice}
                     </span>
                   </div>
                 ))}

@@ -59,20 +59,15 @@ const Medicine = () => {
         limit: pageSize.toString(),
         search: search.trim(),
         category: category === "All Categories" ? "" : category,
-        sortBy: sort,
+        sortBy: sort, // ✅ ensure you’re sending this exact key
       });
+
 
       const response = await apiClient.get(`/products?${params}`);
 
       console.log(response.data);
 
-      // Assuming your API returns something like:
-      // {
-      //   products: [...],
-      //   totalCount: 100,
-      //   currentPage: 1,
-      //   totalPages: 13
-      // }
+
 
       setProducts(response.data.products || []);
       setTotalProducts(response.data.totalCount || 0);
@@ -205,7 +200,7 @@ const Medicine = () => {
           </button>
         </div>
         {/* Filter Bar */}
-        <div className="bg-white rounded-lg p-4 mb-6">
+        <div className="bg-white rounded-lg p-4 my-6">
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             {/* Category Dropdown */}
             <div className="relative w-full sm:w-auto">
@@ -255,11 +250,11 @@ const Medicine = () => {
               )}
             </div>
 
-            {/* Filter Button */}
+            {/* Filter Button
             <button className="flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto bg-[#0066CC] text-white rounded-md hover:bg-blue-700">
               <Filter className="h-4 w-4" />
               <span className="text-sm">Filter</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -293,12 +288,13 @@ const Medicine = () => {
                   to={`/product_details/${product._id}`}
                   className="flex-1 flex flex-col"
                 >
-                  <div className="p-4 flex-1">
+                  <div className="pt-4 px-4 flex-1">
                     <h3 className="font-semibold text-left text-[#2D3748] text-lg mb-1">
                       {product.name}
                     </h3>
                     <p className="text-gray-600 text-left text-xs mb-3">
-                      {product.description} <br />
+                      {product.description.split(" ").slice(0, 10).join(" ")}
+                      {product.description.split(" ").length > 10 ? "..." : ""}<br />
                       <span className="text-blue-600">{product.brand}</span>
                     </p>
 
@@ -377,11 +373,10 @@ const Medicine = () => {
                     }
                     return (
                       <button
-                        className={`w-full py-2 px-4 cursor-pointer rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
-                          product.stock <= 0
+                        className={`w-full py-2 px-4 cursor-pointer rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors ${product.stock <= 0
                             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                             : "bg-[#0066CC] text-white hover:bg-blue-700"
-                        }`}
+                          }`}
                         disabled={product.stock <= 0}
                         onClick={() => handleAddToCart(product)}
                       >
@@ -411,11 +406,10 @@ const Medicine = () => {
               <button
                 key={index + 1}
                 onClick={() => handlePageChange(index + 1)}
-                className={`px-3 py-2 rounded-md ${
-                  currentPage === index + 1
+                className={`px-3 py-2 rounded-md ${currentPage === index + 1
                     ? "bg-[#4285F4] text-white"
                     : "hover:bg-gray-200 transition-colors"
-                }`}
+                  }`}
               >
                 {index + 1}
               </button>
