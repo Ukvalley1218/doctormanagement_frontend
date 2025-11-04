@@ -53,46 +53,37 @@ const Doctors = () => {
 
   // Server-side pagination API call
   const fetchdoctordata = async (page = 1, search = "", sort = "Rating") => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // Build query parameters for server-side pagination
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: doctorsPerPage.toString(),
-        search: search.trim(),
-        sortBy: sort,
-      });
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: doctorsPerPage.toString(),
+      search: search.trim(),
+      sortBy: sort,
+    });
 
-      const response = await apiClient.get(`/doctors?${params}`);
+    const response = await apiClient.get(`/doctors?${params}`);
+    console.log(response.data);
 
-      console.log(response.data);
+    // ✅ Filter only active doctors
+    const activeDoctors = (response.data.doctors || []).filter(
+      (doctor) => doctor.status === "Active"
+    );
 
-      // Assuming your API returns something like:
-      // {
-      //   doctors: [...],
-      //   totalCount: 50,
-      //   currentPage: 1,
-      //   totalPages: 9
-      // }
+    setDoctors(activeDoctors);
+    setTotalDoctors(activeDoctors.length);
+    setTotalPages(response.data.totalPages || 0);
+  } catch (error) {
+    console.log(error);
+    setDoctors([]);
+    setTotalDoctors(0);
+    setTotalPages(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      setDoctors(response.data.doctors || []);
-      setTotalDoctors(response.data.totalDoctors || 0);
-      setTotalPages(response.data.totalPages || 0);
-
-      // If your API doesn't return totalPages, calculate it
-      if (!response.data.totalPages && response.data.totalCount) {
-        setTotalPages(Math.ceil(response.data.totalCount / doctorsPerPage));
-      }
-    } catch (error) {
-      console.log(error);
-      setDoctors([]);
-      setTotalDoctors(0);
-      setTotalPages(0);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Initial load
   useEffect(() => {
@@ -255,7 +246,7 @@ const Doctors = () => {
                           ${doctor.consultationFee} consultation
                         </span>
                       </div>
-                      <button className="w-full bg-[#4285F4] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
+                      <button className="cursor-pointer w-full bg-[#4285F4] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
                         Book Appointment
                       </button>
                     </div>
@@ -266,49 +257,54 @@ const Doctors = () => {
           </div>
 
           {/* Pagination - Only show if there are multiple pages */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronDown className="h-4 w-4 rotate-90" />
-              </button>
+{totalPages > 1 && (
+  <div className="flex flex-col items-center gap-3 mt-4 px-2 sm:px-0">
+    {/* Buttons */}
+    <div className="flex flex-wrap justify-center items-center gap-2">
+      {/* Prev button */}
+      <button
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronDown className="h-4 w-4 rotate-90" />
+      </button>
 
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`px-3 py-2 rounded-md ${
-                    currentPage === index + 1
-                      ? "bg-[#4285F4] text-white"
-                      : "hover:bg-gray-200 transition-colors"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
+      {/* Page numbers */}
+      {[...Array(totalPages)].map((_, index) => (
+        <button
+          key={index + 1}
+          onClick={() => handlePageChange(index + 1)}
+          className={`px-3 py-2 rounded-md text-sm sm:text-base ${
+            currentPage === index + 1
+              ? "bg-[#4285F4] text-white"
+              : "hover:bg-gray-200 transition-colors"
+          }`}
+        >
+          {index + 1}
+        </button>
+      ))}
 
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronDown className="h-4 w-4 -rotate-90" />
-              </button>
-            </div>
-          )}
+      {/* Next button */}
+      <button
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronDown className="h-4 w-4 -rotate-90" />
+      </button>
+    </div>
 
-          {/* Page Info */}
-          {totalPages > 1 && (
-            <div className="text-center mt-4 text-sm text-gray-600">
-              Showing{" "}
-              {Math.min((currentPage - 1) * doctorsPerPage + 1, totalDoctors)} -{" "}
-              {Math.min(currentPage * doctorsPerPage, totalDoctors)} of{" "}
-              {totalDoctors} doctors (Page {currentPage} of {totalPages})
-            </div>
-          )}
+    {/* Page Info */}
+    <div className="text-center text-xs sm:text-sm text-gray-600">
+      Showing{" "}
+      {Math.min((currentPage - 1) * doctorsPerPage + 1, totalDoctors)} -{" "}
+      {Math.min(currentPage * doctorsPerPage, totalDoctors)} of {totalDoctors} doctors
+      <span className="block sm:inline"> (Page {currentPage} of {totalPages})</span>
+    </div>
+  </div>
+)}
+
         </div>
       </section>
 

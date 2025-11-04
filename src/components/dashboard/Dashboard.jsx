@@ -192,7 +192,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-gray-500 text-sm font-medium">
-                  Available Doctors
+                  Available Therapist
                 </h3>
                 <p className="text-3xl font-bold text-gray-900 mt-1">
                   {counts?.doctorsCount}
@@ -372,7 +372,7 @@ const Dashboard = () => {
                           ) : (
                             <button
                               onClick={() => handleAddToCart(medicine)}
-                              className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                              className="cursor-pointer flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                             >
                               <ShoppingCart className="w-4 h-4" />
                               <span>Add</span>

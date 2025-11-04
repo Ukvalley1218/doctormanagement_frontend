@@ -15,6 +15,22 @@ import { Link, useNavigate } from "react-router-dom";
 import Login from "../auth/Login";
 import apiClient from "../../../apiclient";
 
+// Canada tax rates (HST/GST/PST combined)
+const CANADA_TAX_RATES = {
+  Ontario: 0.13,
+  Alberta: 0.05,
+  BritishColumbia: 0.12,
+  Manitoba: 0.12,
+  NewBrunswick: 0.15,
+  Newfoundland: 0.15,
+  NovaScotia: 0.15,
+
+  Quebec: 0.14975,
+  Saskatchewan: 0.11,
+  NorthwestTerritories: 0.05,
+  Nunavut: 0.05,
+
+};
 const Cart = () => {
   const navigate = useNavigate();
   const {
@@ -135,9 +151,6 @@ const Cart = () => {
     return actualTotal - finalAmount;
   }, [actualTotal, finalAmount]);
 
-  // const totalamount = useMemo(() => {
-  //   return finalAmount + (setting && setting[0]?.deliverfee);
-  // }, [finalAmount, setting]);
 
   const totalamount = useMemo(() => {
     // Delivery fee logic
@@ -147,6 +160,34 @@ const Cart = () => {
     return finalAmount + deliveryFee;
   }, [finalAmount, setting, actualTotal]);
 
+  // Tax calculation based on state
+  // Compute tax rate automatically when state changes
+  const taxRate = useMemo(() => {
+    if (!form.state) return CANADA_TAX_RATES["Ontario"]; // default Ontario if empty
+
+    const normalized = form.state
+      .trim()
+      .replace(/\s+/g, "")
+      .toLowerCase(); // normalize input
+
+    const foundProvince = Object.keys(CANADA_TAX_RATES).find(
+      (prov) => prov.toLowerCase().replace(/\s+/g, "") === normalized
+    );
+
+    return foundProvince
+      ? CANADA_TAX_RATES[foundProvince]
+      : CANADA_TAX_RATES["Ontario"];
+  }, [form.state]);
+
+  const taxAmount = useMemo(() => {
+    return finalAmount * taxRate;
+  }, [finalAmount, taxRate]);
+
+  // Grand total including tax and delivery
+  const grandTotal = useMemo(() => {
+    const deliveryFee = actualTotal > 25 ? 0 : setting && setting[0]?.deliverfee;
+    return finalAmount + deliveryFee + taxAmount;
+  }, [finalAmount, actualTotal, setting, taxAmount]);
 
   // Apply promo code
   const handleApplyPromoCode = async () => {
@@ -176,11 +217,13 @@ const Cart = () => {
     if (!form.address.trim()) newErrors.address = "Address is required";
     if (!form.city.trim()) newErrors.city = "City is required";
     if (!form.state.trim()) newErrors.state = "State is required";
+    // as per canadian zip code
     if (!form.zip.trim()) {
-      newErrors.zip = "Zip code is required";
-    } else if (!/^\d{4,10}$/.test(form.zip)) {
-      newErrors.zip = "Enter a valid zip code";
+      newErrors.zip = "Postal code is required";
+    } else if (!/^[A-Za-z]\d[A-Za-z][ ]?\d[A-Za-z]\d$/.test(form.zip.trim())) {
+      newErrors.zip = "Enter a valid Canadian postal code (e.g., A1A 1A1)";
     }
+
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -217,11 +260,14 @@ const Cart = () => {
           productId: item._id,
           quantity: item.quantity,
         })),
-        totalPrice: totalamount,
-        deliverfee: deliveryFee,
-        session_id,
-        discountAmount: discountAmount,
         productValue: actualTotal,
+        discountAmount: discountAmount,
+        deliverfee: actualTotal > 25 ? 0 : setting[0]?.deliverfee || 0,
+        taxRate: taxRate * 100, // store as percentage
+        taxAmount,
+        promoCode,
+        totalPrice: grandTotal, // total including tax + delivery
+        session_id,
       };
 
       await apiClient.post(`/orders`, placeOrderPayload);
@@ -541,9 +587,9 @@ const Cart = () => {
                 setShowCheckout(true);
               }}
               disabled={cartItems.length === 0}
-              className={`w-full py-3 rounded-md font-medium flex items-center justify-center gap-2 ${cartItems.length === 0
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+              className={`cursor-pointer w-full py-3 rounded-md font-medium flex items-center justify-center gap-2 ${cartItems.length === 0
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
             >
               <ShoppingCart className="w-5 h-5" />
@@ -567,18 +613,30 @@ const Cart = () => {
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Discount{` (${user?.userDiscount}%)`}:</span>
+                  <span>Discount{/*` (${user?.userDiscount}%)`*/}:</span>
                   <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Delivery Fee:</span>
-                <span>{formatCurrency(setting && setting[0].deliverfee)}</span>
+                {actualTotal > 25 ? (
+                  <span className="text-green-600">Free</span>
+                ) : (
+                  <span>{formatCurrency(setting && setting[0]?.deliverfee)}</span>
+                )}
+              </div>
+              <div className="flex justify-between">
+                <span>Tax ({(taxRate * 100).toFixed(2)}%):</span>
+                <span>{formatCurrency(taxAmount)}</span>
               </div>
               <div className="border-t pt-2 flex justify-between font-semibold">
+                <span>Total (incl. tax):</span>
+                <span>{formatCurrency(grandTotal)}</span>
+              </div>
+              {/* <div className="border-t pt-2 flex justify-between font-semibold">
                 <span>Total:</span>
                 <span>{formatCurrency(totalamount)}</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Checkout Form */}
@@ -665,18 +723,16 @@ const Cart = () => {
                   )}
                 </div>
                 <div>
-                  <input
-                    type="text"
-                    placeholder="State"
-                    value={form?.state || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, state: e.target.value })
-                    }
+                  <select
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
                     className="px-3 w-full py-2 border border-gray-300 rounded-md"
-                  />
-                  {errors.state && (
-                    <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-                  )}
+                  >
+                    <option value="">Select Province</option>
+                    {Object.keys(CANADA_TAX_RATES).map((prov) => (
+                      <option key={prov} value={prov}>{prov}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div>
@@ -696,14 +752,14 @@ const Cart = () => {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setShowCheckout(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="cursor-pointer flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePlaceOrder}
                 disabled={submit}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+                className="cursor-pointer flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400"
               >
                 {submit ? "Submitting..." : "Place Order"}
               </button>

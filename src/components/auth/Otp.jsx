@@ -81,8 +81,11 @@ const OTP = (props) => {
       login(response.data);
 
       if (typeof onLoginSuccess === "function") {
+        
         onLoginSuccess();
       }
+       // ✅ FIX: navigate to home
+    navigation("/");
       // navigation(-1);
     } catch (error) {
       console.log(error.response);

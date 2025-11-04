@@ -278,14 +278,14 @@ const Orders = () => {
         {["in transit", "processing", "placed"].includes(
           order.status?.toLowerCase()
         ) && (
-          <button
-            onClick={() => handleCancel(order._id)}
-            className="text-red-600 cursor-pointer hover:text-red-700 flex items-center space-x-1 text-sm"
-          >
-            <XCircle className="w-4 h-4" />
-            <span>Cancel Order</span>
-          </button>
-        )}
+            <button
+              onClick={() => handleCancel(order._id)}
+              className="text-red-600 cursor-pointer hover:text-red-700 flex items-center space-x-1 text-sm"
+            >
+              <XCircle className="w-4 h-4" />
+              <span>Cancel Order</span>
+            </button>
+          )}
       </div>
     </div>
   );
@@ -293,9 +293,9 @@ const Orders = () => {
   const totalAmount =
     orderdata && orderdata.length > 0
       ? orderdata
-          .filter((order) => order.status?.toLowerCase() !== "cancelled") // ✅ skip cancelled
-          .reduce((sum, order) => sum + (order.totalAmount || 0), 0)
-          .toFixed(2)
+        .filter((order) => order.status?.toLowerCase() !== "cancelled") // ✅ skip cancelled
+        .reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+        .toFixed(2)
       : "0.00";
 
   return (
@@ -385,19 +385,17 @@ const Orders = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
-                  activeTab === tab.key
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${activeTab === tab.key
                     ? "bg-blue-600 text-white"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-xs ${
-                    activeTab === tab.key
+                  className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.key
                       ? "bg-blue-500 text-white"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {tab.count}
                 </span>
@@ -434,41 +432,62 @@ const Orders = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
-            {/* Previous Button */}
-            <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronDown className="h-4 w-4 rotate-90" />
-            </button>
-
-            {/* Page Numbers */}
-            {[...Array(totalPages)].map((_, index) => (
+          <div className="flex flex-col items-center gap-3 mt-6 px-2 sm:px-0">
+            <div className="flex flex-wrap justify-center items-center gap-2">
+              {/* Previous Button */}
               <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-3 py-2 rounded-md font-medium ${
-                  page === index + 1
-                    ? "bg-[#4285F4] text-white shadow-md"
-                    : "text-gray-700 hover:bg-gray-200 transition-colors"
-                }`}
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {index + 1}
+                <ChevronDown className="h-4 w-4 rotate-90" />
               </button>
-            ))}
 
-            {/* Next Button */}
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronDown className="h-4 w-4 -rotate-90" />
-            </button>
+              {/* Page Numbers with Ellipsis */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                if (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= page - 1 && pageNum <= page + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 rounded-md font-medium ${page === pageNum
+                          ? "bg-[#4285F4] text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-200 transition-colors"
+                        }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (
+                  (pageNum === page - 2 && page > 3) ||
+                  (pageNum === page + 2 && page < totalPages - 2)
+                ) {
+                  return <span key={pageNum} className="px-2 text-gray-500">...</span>;
+                }
+                return null;
+              })}
+
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronDown className="h-4 w-4 -rotate-90" />
+              </button>
+            </div>
+
+            {/* Page Info */}
+            <div className="text-center text-xs sm:text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </div>
           </div>
         )}
+
       </div>
     </div>
   );

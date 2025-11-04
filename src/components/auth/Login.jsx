@@ -112,7 +112,7 @@ const Login = ({ navigation, onLoginSuccess }) => {
               <button
                 onClick={handleGetOTP}
                 disabled={submit}
-                className={`w-full bg-blue-600 ${
+                className={`cursor-pointer w-full bg-blue-600 ${
                   submit ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
                 } text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 outline-none`}
               >

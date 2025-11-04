@@ -6,83 +6,83 @@ const Appointment = () => {
   const [activeTab, setActiveTab] = useState("recent");
 
   // Sample data for appointments
-  const recentAppointments = [
-    {
-      id: 1,
-      doctor: "Dr. Michael Smith",
-      specialty: "Cardiology Consultation",
-      date: "Jan 15, 2024",
-      time: "8:30 AM",
-      status: "Confirm",
-      avatar: "MS",
-    },
-    {
-      id: 2,
-      doctor: "Dr. Sarah Johnson",
-      specialty: "General Checkup",
-      date: "Jan 16, 2024",
-      time: "10:15 AM",
-      status: "Pending",
-      avatar: "SJ",
-    },
-    {
-      id: 3,
-      doctor: "Dr. Robert Davis",
-      specialty: "Orthopedic Consultation",
-      date: "Jan 17, 2024",
-      time: "11:00 AM",
-      status: "Confirm",
-      avatar: "RD",
-    },
-    {
-      id: 4,
-      doctor: "Dr. Emily Wilson",
-      specialty: "Dermatology Consultation",
-      date: "Jan 18, 2024",
-      time: "2:15 PM",
-      status: "Confirm",
-      avatar: "EW",
-    },
-  ];
+  // const recentAppointments = [
+  //   {
+  //     id: 1,
+  //     doctor: "Dr. Michael Smith",
+  //     specialty: "Cardiology Consultation",
+  //     date: "Jan 15, 2024",
+  //     time: "8:30 AM",
+  //     status: "Confirm",
+  //     avatar: "MS",
+  //   },
+  //   {
+  //     id: 2,
+  //     doctor: "Dr. Sarah Johnson",
+  //     specialty: "General Checkup",
+  //     date: "Jan 16, 2024",
+  //     time: "10:15 AM",
+  //     status: "Pending",
+  //     avatar: "SJ",
+  //   },
+  //   {
+  //     id: 3,
+  //     doctor: "Dr. Robert Davis",
+  //     specialty: "Orthopedic Consultation",
+  //     date: "Jan 17, 2024",
+  //     time: "11:00 AM",
+  //     status: "Confirm",
+  //     avatar: "RD",
+  //   },
+  //   {
+  //     id: 4,
+  //     doctor: "Dr. Emily Wilson",
+  //     specialty: "Dermatology Consultation",
+  //     date: "Jan 18, 2024",
+  //     time: "2:15 PM",
+  //     status: "Confirm",
+  //     avatar: "EW",
+  //   },
+  // ];
 
-  const completedAppointments = [
-    {
-      id: 5,
-      doctor: "Dr. James Brown",
-      specialty: "Neurology Consultation",
-      date: "Jan 10, 2024",
-      time: "9:00 AM",
-      status: "Complete",
-      avatar: "JB",
-    },
-    {
-      id: 6,
-      doctor: "Dr. Lisa Anderson",
-      specialty: "Pediatric Checkup",
-      date: "Jan 12, 2024",
-      time: "1:30 PM",
-      status: "Complete",
-      avatar: "LA",
-    },
-    {
-      id: 7,
-      doctor: "Dr. Carlos Martinez",
-      specialty: "Gastroenterology Consultation",
-      date: "Jan 13, 2024",
-      time: "3:30 PM",
-      status: "Complete",
-      avatar: "CM",
-    },
-    {
-      id: 8,
-      doctor: "Dr. Mark Taylor",
-      specialty: "Ophthalmology Consultation",
-      date: "Jan 14, 2024",
-      time: "11:00 AM",
-      status: "Complete",
-      avatar: "MT",
-    },
-  ];
+  // const completedAppointments = [
+  //   {
+  //     id: 5,
+  //     doctor: "Dr. James Brown",
+  //     specialty: "Neurology Consultation",
+  //     date: "Jan 10, 2024",
+  //     time: "9:00 AM",
+  //     status: "Complete",
+  //     avatar: "JB",
+  //   },
+  //   {
+  //     id: 6,
+  //     doctor: "Dr. Lisa Anderson",
+  //     specialty: "Pediatric Checkup",
+  //     date: "Jan 12, 2024",
+  //     time: "1:30 PM",
+  //     status: "Complete",
+  //     avatar: "LA",
+  //   },
+  //   {
+  //     id: 7,
+  //     doctor: "Dr. Carlos Martinez",
+  //     specialty: "Gastroenterology Consultation",
+  //     date: "Jan 13, 2024",
+  //     time: "3:30 PM",
+  //     status: "Complete",
+  //     avatar: "CM",
+  //   },
+  //   {
+  //     id: 8,
+  //     doctor: "Dr. Mark Taylor",
+  //     specialty: "Ophthalmology Consultation",
+  //     date: "Jan 14, 2024",
+  //     time: "11:00 AM",
+  //     status: "Complete",
+  //     avatar: "MT",
+  //   },
+  // ];
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {

@@ -65,10 +65,6 @@ function LayoutWithNavbar() {
     }
   };
 
-  // if(isLoggedIn){
-  //   navigate(-1);
-  // }
-  
   useEffect(() => {
     fetchData();
   }, []);
@@ -76,12 +72,12 @@ function LayoutWithNavbar() {
   return (
     <Navbar isLoggedIn={isLoggedIn} onLoginClick={() => setIsLoginOpen(true)}>
       <Routes>
-        {isLoggedIn ? (
-          <Route path="/" element={<Dashboard />} />
-        ) : (
-          <Route path="/" element={<Home />} />
-        )}
-
+        {/* Home page is always accessible at "/" */}
+        <Route path="/" element={<Home />} />
+        
+        {/* Dashboard route */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        
         <Route path="/medicines" element={<Medicine />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/doctors" element={<Doctors />} />

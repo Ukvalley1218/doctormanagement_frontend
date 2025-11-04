@@ -159,7 +159,7 @@ const Profile = ({ onLoginSuccess }) => {
           const formData = new FormData();
           formData.append("image", selectedImage);
 
-          const response = await apiClient.post(
+          const response = await apiClient.put(
             `/upload/users/${user._id}/avatar`,
             formData,
             {

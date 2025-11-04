@@ -68,9 +68,12 @@ const Medicine = () => {
       console.log(response.data);
 
 
-
-      setProducts(response.data.products || []);
-      setTotalProducts(response.data.totalCount || 0);
+// ✅ Filter only active medicines
+    const activeMedicines = (response.data.products || []).filter(
+      (product) => product.status === "Active"
+    );
+      setProducts(activeMedicines);
+      setTotalProducts(activeMedicines.totalCount || 0);
       setTotalPages(response.data.totalPages || 0);
 
       // If your API doesn't return totalPages, calculate it
@@ -391,48 +394,55 @@ const Medicine = () => {
           )}
         </div>
 
-        {/* Pagination Controls - Only show if there are multiple pages */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronDown className="h-4 w-4 rotate-90" />
-            </button>
+        {/* Pagination Controls - Responsive */}
+{totalPages > 1 && (
+  <div className="flex flex-wrap justify-center items-center gap-2 mt-6 px-2">
+    {/* Prev button */}
+    <button
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <ChevronDown className="h-4 w-4 rotate-90" />
+    </button>
 
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-3 py-2 rounded-md ${currentPage === index + 1
-                    ? "bg-[#4285F4] text-white"
-                    : "hover:bg-gray-200 transition-colors"
-                  }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+    {/* Page numbers */}
+    <div className="flex flex-wrap justify-center gap-2 max-w-full">
+      {[...Array(totalPages)].map((_, index) => (
+        <button
+          key={index + 1}
+          onClick={() => handlePageChange(index + 1)}
+          className={`px-3 py-2 rounded-md text-sm sm:text-base ${
+            currentPage === index + 1
+              ? "bg-[#4285F4] text-white"
+              : "hover:bg-gray-200 transition-colors"
+          }`}
+        >
+          {index + 1}
+        </button>
+      ))}
+    </div>
 
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronDown className="h-4 w-4 -rotate-90" />
-            </button>
-          </div>
-        )}
+    {/* Next button */}
+    <button
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+      className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <ChevronDown className="h-4 w-4 -rotate-90" />
+    </button>
+  </div>
+)}
 
-        {/* Page Info */}
-        {totalPages > 1 && (
-          <div className="text-center mt-4 text-sm text-gray-600">
-            Showing {Math.min((currentPage - 1) * pageSize + 1, totalProducts)}{" "}
-            - {Math.min(currentPage * pageSize, totalProducts)} of{" "}
-            {totalProducts} products (Page {currentPage} of {totalPages})
-          </div>
-        )}
+{/* Page Info */}
+{totalPages > 1 && (
+  <div className="text-center mt-4 text-xs sm:text-sm text-gray-600 px-2">
+    Showing {Math.min((currentPage - 1) * pageSize + 1, totalProducts)} -
+    {Math.min(currentPage * pageSize, totalProducts)} of {totalProducts} products
+    <span className="block sm:inline"> (Page {currentPage} of {totalPages})</span>
+  </div>
+)}
+
       </section>
 
       <Footer />
