@@ -315,31 +315,42 @@ export const CartProvider = ({ children }) => {
   };
 
   const applyPromoCode = async (code) => {
-    try {
-      const response = await apiClient.post("/promocode/apply", { code });
-      console.log(response.data);
+  // 🧼 If code is falsy, clear promo instead of calling API
+  if (!code) {
+    dispatch({
+      type: "APPLY_PROMO_CODE",
+      payload: { code: "", discount: 0 },
+    });
+    return 0;
+  }
 
-      // Assuming your API responds with { success: true, discount: 15 }
-      dispatch({
-        type: "APPLY_PROMO_CODE",
-        payload: {
-          code,
-          discount: response.data.discountPercentage || 0,
-        },
-      });
-      return response.data.discountPercentage
-    } catch (error) {
-      console.error(
-        "Failed to apply promo code:",
-        error.response?.data || error.message
-      );
-      alert(error.response.data?.message || "Invalid promo code");
-      dispatch({
-        type: "APPLY_PROMO_CODE",
-        payload: { code: "", discount: 0 },
-      });
-    }
-  };
+  try {
+    const response = await apiClient.post("/promocode/apply", { code });
+    console.log(response.data);
+
+    dispatch({
+      type: "APPLY_PROMO_CODE",
+      payload: {
+        code,
+        discount: response.data.discountPercentage || 0,
+      },
+    });
+
+    return response.data.discountPercentage;
+  } catch (error) {
+    console.error(
+      "Failed to apply promo code:",
+      error.response?.data || error.message
+    );
+    alert(error.response?.data?.message || "Invalid promo code");
+    dispatch({
+      type: "APPLY_PROMO_CODE",
+      payload: { code: "", discount: 0 },
+    });
+    return 0;
+  }
+};
+
 
   const setDeliveryOption = (option) => {
     dispatch({ type: "SET_DELIVERY_OPTION", payload: option });

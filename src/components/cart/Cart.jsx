@@ -273,6 +273,9 @@ const Cart = () => {
       await apiClient.post(`/orders`, placeOrderPayload);
 
       setOrderPlaced(true);
+      // 🧼 Clear promo-related data so message disappears
+setpromodiscount(false);
+applyPromoCode(null);
       navigate("/checkout-success");
       localStorage.removeItem("cart");
       localStorage.removeItem("sessionId");
@@ -570,7 +573,7 @@ const Cart = () => {
                   Apply
                 </button>
               </div>
-              {promoCode && (
+              {promoCode && promodiscount && (
                 <p className="text-sm text-green-600 mt-2">
                   Promo code "{promoCode}" applied!
                 </p>
@@ -582,6 +585,9 @@ const Cart = () => {
               onClick={() => {
                 if (!isLoggedIn) {
                   setIsLoginOpen(true);
+                   // 🧼 Clear promo data after login (prevents stale promo msg)
+    
+      setPromoCodeInput("");
                   return;
                 }
                 setShowCheckout(true);

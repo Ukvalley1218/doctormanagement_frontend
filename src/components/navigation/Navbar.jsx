@@ -277,7 +277,7 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                   className="px-4 py-2 bg-gradient-to-r from-[#2267e5] to-[#0b9391] cursor-pointer text-white rounded-md hover:bg-blue-700"
                   onClick={onLoginClick}
                 >
-                  Login
+                  Sign In
                   <span className="ml-2">→</span>
                 </button>
               )}
@@ -384,7 +384,7 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
                       setIsMenuOpen(false);
                     }}
                   >
-                    Login
+                    Sign In
                     <span className="ml-2">→</span>
                   </button>
                 )}

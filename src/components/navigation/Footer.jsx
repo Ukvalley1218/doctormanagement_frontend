@@ -47,15 +47,15 @@ const Footer = () => {
             <ul className="space-y-3 text-gray-300 text-sm font-semibold">
               <li className="flex items-center gap-2">
                 <span className="text-white">→</span>
-                <a href="#" className="hover:text-green-400 transition-colors">Home</a>
+                <a href="/" className="hover:text-green-400 transition-colors">Home</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-white">→</span>
-                <a href="#" className="hover:text-green-400 transition-colors">Find Doctors</a>
+                <a href="/doctors" className="hover:text-green-400 transition-colors">Find Therapists</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-white">→</span>
-                <a href="#" className="hover:text-green-400 transition-colors">Order Medicines</a>
+                <a href="/medicines" className="hover:text-green-400 transition-colors">Order Medicines</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-white">→</span>
