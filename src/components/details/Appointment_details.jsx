@@ -4,6 +4,8 @@ import dr from "../../assets/images/dr.png";
 import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../apiclient";
 import { InlineWidget } from "react-calendly";
+import { Title, Meta } from "react-head";
+
 
 const AppointmentDetails = () => {
   const { doctor_id } = useParams();
@@ -197,6 +199,56 @@ const AppointmentDetails = () => {
   };
 
   return (
+    <>
+     {/* SEO TAGS */}
+    <Title>{data?.name} – Book Appointment | HealCure</Title>
+
+    <Meta
+      name="description"
+      content={`${data?.name} – ${data?.specialty}. Book doctor appointments online. Consultation fee: $${data?.consultationFee}. ${data?.about?.slice(
+        0,
+        140
+      )}...`}
+    />
+
+    <Meta
+      name="keywords"
+      content={`
+        book doctor appointment,
+        ${data?.name} doctor,
+        ${data?.specialty} specialist,
+        online doctor consultation,
+        healthcare services,
+        doctors near me,
+        medical appointment booking,
+        ${data?.location} doctors
+      `}
+    />
+
+    {/* Open Graph */}
+    <Meta property="og:title" content={`${data?.name} – Book Appointment`} />
+    <Meta
+      property="og:description"
+      content={`${data?.specialty} | Consultation: $${data?.consultationFee}. Book online at HealCure.`}
+    />
+    <Meta property="og:type" content="profile" />
+    <Meta
+      property="og:url"
+      content={`https://healcure.ca/book_appointment/${doctor_id}`}
+    />
+    <Meta property="og:image" content={data?.image} />
+
+    {/* Twitter */}
+    <Meta name="twitter:card" content="summary_large_image" />
+    <Meta name="twitter:title" content={`${data?.name} – Doctor Appointment`} />
+    <Meta
+      name="twitter:description"
+      content={`Consult ${data?.name}, ${data?.specialty}. Book online instantly.`}
+    />
+    <Meta name="twitter:image" content={data?.image} />
+
+    {/* Code */}
+    
     <div className="">
       {/* Doctor Profile */}
       <div className="mx-6 mt-4">
@@ -224,7 +276,7 @@ const AppointmentDetails = () => {
                 />
                 <h2 className="text-xl font-bold text-blue-700">{data?.name}</h2>
                 <p className="text-gray-600 font-semibold">
-                  {data?.qualifications || "D.O.M.P"}
+                  {data?.specialty || "D.O.M.P"}
                 </p>
                 <p className="text-gray-500">
                   {data?.experience || "25 yrs. of practice"} of practise
@@ -310,11 +362,11 @@ const AppointmentDetails = () => {
                     "Stem Cell Therapy",
                     "Osteopathy Treatments",
                     "Weight Management",
-                  ]).map((treat, i) => {
-                    // soft color palette
-                    const colors = [
-                      "bg-blue-100 text-blue-800",
-                      "bg-green-100 text-green-800",
+                    ]).map((treat, i) => {
+                      // soft color palette
+                      const colors = [
+                        "bg-blue-100 text-blue-800",
+                        "bg-green-100 text-green-800",
                       "bg-pink-100 text-pink-800",
                       "bg-yellow-100 text-yellow-800",
                       "bg-purple-100 text-purple-800",
@@ -324,7 +376,7 @@ const AppointmentDetails = () => {
                     const color = colors[i % colors.length];
                     return (
                       <span
-                        key={i}
+                      key={i}
                         className={`px-3 py-1 text-sm font-medium rounded-full border border-transparent ${color}`}
                       >
                         {treat}
@@ -337,7 +389,7 @@ const AppointmentDetails = () => {
             </div>
 
             {/* RIGHT: Consultation Card */}
-            <div className="bg-[#f8f9fb] rounded-2xl shadow-md p-6 flex flex-col justify-between h-[320px]">
+            <div className="bg-[#f8f9fb] rounded-2xl shadow-md p-6 flex flex-col justify-between h-[280px]">
               <div>
                 <h3 className="font-semibold text-lg mb-4">Consultation Details</h3>
                 <div className="space-y-2 text-sm mb-4">
@@ -383,9 +435,9 @@ const AppointmentDetails = () => {
           </div>
 
           {/* Bottom Section: Tabs + Contact Form */}
-<div className="max-w-7xl mx-auto mt-10 flex flex-col lg:flex-row gap-8 px-4 sm:px-6 md:px-0">
+<div className="max-w-6xl mx-auto mt-10 flex flex-col lg:flex-row gap-8 px-4 sm:px-6 md:px-0">
   {/* DOCTOR INFO SECTION - TABS ON TOP */}
-  <div className="lg:w-[70%] bg-white rounded-3xl shadow-sm p-4 sm:p-6">
+  <div className="lg:w-[68%] bg-white rounded-3xl shadow-sm p-4 sm:p-6">
     {/* Tabs Header */}
     <div className="border-b border-gray-200 mb-6 overflow-x-auto">
       <nav className="flex space-x-4 sm:space-x-6 min-w-max">
@@ -432,9 +484,9 @@ const AppointmentDetails = () => {
             {data?.experience || "15+ years of clinical experience"}
           </p>
           <p className="text-gray-600 text-sm sm:text-base">
-            Graduated from:{" "}
+            Graduated in:{" "}
             <span className="font-medium">
-              {data?.qualifications || "D.O.M.P (Osteopathy)"}
+              {data?.specialty || "D.O.M.P (Osteopathy)"}
             </span>
           </p>
         </div>
@@ -638,7 +690,7 @@ const AppointmentDetails = () => {
 
             </div>
             {/* RIGHT: Contact Form */}
-            <div className="lg:w-[30%] bg-gradient-to-br from-[#eaf2fd] to-[#e7f7f6] p-6 rounded-3xl shadow-sm h-fit">
+            <div className="lg:w-[32%] bg-gradient-to-br from-[#eaf2fd] to-[#e7f7f6] p-6 rounded-3xl shadow-sm h-fit lg:mt-[-220px] ">
               <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">
                 Find The Best
               </h2>
@@ -692,7 +744,7 @@ const AppointmentDetails = () => {
                 {message && (
                   <p
                     className={`text-sm text-center ${message.startsWith("✅") ? "text-green-600" : "text-red-500"
-                      }`}
+                    }`}
                   >
                     {message}
                   </p>
@@ -707,16 +759,16 @@ const AppointmentDetails = () => {
       {/* <div className="w-full rounded-xl shadow mt-4">
         {data && data?.calendlyUrl && (
           <div>
-            <InlineWidget
-              url={data && data?.calendlyUrl}
-              styles={{
-                height: "850px",
-                paddingLeft: "10px",
-                marginBottom: 20,
-              }}
+          <InlineWidget
+          url={data && data?.calendlyUrl}
+          styles={{
+            height: "850px",
+            paddingLeft: "10px",
+            marginBottom: 20,
+            }}
             />
-          </div>
-        )}
+            </div>
+            )}
       </div> */}
 
       {/* Reviews List */}
@@ -727,7 +779,7 @@ const AppointmentDetails = () => {
           </h4>
           <div className="flex gap-2">
             <button
-              onClick={() => setShowRatingForm(!showRatingForm)}
+            onClick={() => setShowRatingForm(!showRatingForm)}
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-2 py-2 rounded-lg transition-colors duration-200"
             >
               Write Review
@@ -737,17 +789,17 @@ const AppointmentDetails = () => {
               className="text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
               {showAllReviews ? "Show Less" : "Show All Reviews"}
-            </button>
+              </button>
           </div>
         </div> */}
 
       {/* Rating Form */}
       {/* {showRatingForm && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h5 className="text-lg font-semibold text-gray-900 mb-4">
+          <h5 className="text-lg font-semibold text-gray-900 mb-4">
               Share Your Experience
-            </h5>
-            <form onSubmit={handleRatingSubmit}>
+              </h5>
+              <form onSubmit={handleRatingSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 
 
@@ -760,14 +812,14 @@ const AppointmentDetails = () => {
                     <span className="ml-2 text-sm text-gray-600">
                       {userRating > 0 &&
                         `${userRating} star${userRating > 1 ? "s" : ""}`}
-                    </span>
-                  </div>
+                        </span>
+                        </div>
                 </div>
               </div>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Review *
+                Your Review *
                 </label>
                 <textarea
                   value={userComment}
@@ -783,11 +835,11 @@ const AppointmentDetails = () => {
               </div>
 
               <div className="flex gap-3">
-                <button
+              <button
                   type="submit"
                   disabled={submittingRating}
                   className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
-                >
+                  >
                   {submittingRating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -796,8 +848,8 @@ const AppointmentDetails = () => {
                   ) : (
                     "Submit Review"
                   )}
-                </button>
-                <button
+                  </button>
+                  <button
                   type="button"
                   onClick={() => {
                     setShowRatingForm(false);
@@ -806,14 +858,14 @@ const AppointmentDetails = () => {
                     setUserName("");
                   }}
                   className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium px-6 py-2 rounded-lg transition-colors duration-200"
-                >
+                  >
                   Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
+                  </button>
+                  </div>
+                  </form>
+                  </div>
+                  )}
+                  
         <div className="space-y-4">
           {totalReviews > 0 ? (
             (showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
@@ -824,12 +876,12 @@ const AppointmentDetails = () => {
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                     <User className="w-5 h-5 text-blue-600" />
-                  </div>
-
+                    </div>
+                    
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h5 className="font-medium text-gray-900">
-                        {review.name}
+                    <h5 className="font-medium text-gray-900">
+                    {review.name}
                       </h5>
                       {review.verified && (
                         <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
@@ -842,14 +894,14 @@ const AppointmentDetails = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex">{renderStars(review.rating)}</div>
                       <span className="text-xs text-gray-500">
-                        {formatDate(review.createdAt)}
+                      {formatDate(review.createdAt)}
                       </span>
-                    </div>
-
+                      </div>
+                      
                     <p className="text-gray-700 text-sm leading-relaxed">
-                      {review.comment}
+                    {review.comment}
                     </p>
-                  </div>
+                    </div>
                 </div>
               </div>
             ))
@@ -867,10 +919,11 @@ const AppointmentDetails = () => {
             <p className="text-sm text-gray-600">
               Showing 3 of {totalReviews} reviews
             </p>
-          </div>
-        )} 
-      </div>*/}
+            </div>
+            )} 
+            </div>*/}
     </div>
+            </>
   );
 };
 

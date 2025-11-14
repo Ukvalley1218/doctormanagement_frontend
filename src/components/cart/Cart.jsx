@@ -14,6 +14,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import Login from "../auth/Login";
 import apiClient from "../../../apiclient";
+import { loadStripe } from "@stripe/stripe-js";
+
 
 // Canada tax rates (HST/GST/PST combined)
 const CANADA_TAX_RATES = {
@@ -31,6 +33,188 @@ const CANADA_TAX_RATES = {
   Nunavut: 0.05,
 
 };
+const canadianCities = [
+  // --- Alberta ---
+  "Calgary",
+  "Edmonton",
+  "Red Deer",
+  "Lethbridge",
+  "Medicine Hat",
+  "Grande Prairie",
+  "Airdrie",
+  "Spruce Grove",
+  "Leduc",
+  "Fort Saskatchewan",
+  "Camrose",
+  "Brooks",
+  "Wetaskiwin",
+
+  // --- British Columbia ---
+  "Vancouver",
+  "Victoria",
+  "Surrey",
+  "Burnaby",
+  "Richmond",
+  "Abbotsford",
+  "Coquitlam",
+  "Kelowna",
+  "Nanaimo",
+  "Kamloops",
+  "Prince George",
+  "Chilliwack",
+  "Maple Ridge",
+  "New Westminster",
+  "North Vancouver",
+  "Langley",
+  "White Rock",
+  "Penticton",
+  "Port Coquitlam",
+  "Campbell River",
+
+  // --- Manitoba ---
+  "Winnipeg",
+  "Brandon",
+  "Steinbach",
+  "Thompson",
+  "Portage la Prairie",
+  "Selkirk",
+  "Dauphin",
+  "Morden",
+  "Winkler",
+
+  // --- New Brunswick ---
+  "Moncton",
+  "Fredericton",
+  "Saint John",
+  "Bathurst",
+  "Miramichi",
+  "Edmundston",
+  "Dieppe",
+  "Oromocto",
+  "Sackville",
+
+  // --- Newfoundland and Labrador ---
+  "St. John's",
+  "Mount Pearl",
+  "Corner Brook",
+  "Conception Bay South",
+  "Gander",
+  "Grand Falls-Windsor",
+  "Labrador City",
+  "Happy Valley-Goose Bay",
+
+  // --- Northwest Territories ---
+  "Yellowknife",
+  "Hay River",
+  "Inuvik",
+  "Fort Smith",
+
+  // --- Nova Scotia ---
+  "Halifax",
+  "Sydney",
+  "Truro",
+  "New Glasgow",
+  "Kentville",
+  "Bridgewater",
+  "Yarmouth",
+  "Amherst",
+  "Antigonish",
+
+  // --- Nunavut ---
+  "Iqaluit",
+  "Rankin Inlet",
+  "Arviat",
+
+  // --- Ontario ---
+  "Toronto",
+  "Ottawa",
+  "Mississauga",
+  "Brampton",
+  "Hamilton",
+  "London",
+  "Markham",
+  "Vaughan",
+  "Kitchener",
+  "Windsor",
+  "Richmond Hill",
+  "Oakville",
+  "Burlington",
+  "Greater Sudbury",
+  "Oshawa",
+  "Barrie",
+  "St. Catharines",
+  "Cambridge",
+  "Kingston",
+  "Guelph",
+  "Thunder Bay",
+  "Waterloo",
+  "Peterborough",
+  "Brantford",
+  "Niagara Falls",
+  "Sault Ste. Marie",
+  "Milton",
+  "Welland",
+  "Pickering",
+  "Cornwall",
+  "Whitby",
+  "Ajax",
+  "Aurora",
+  "Newmarket",
+  "North Bay",
+  "Belleville",
+  "Timmins",
+  "Kenora",
+
+  // --- Prince Edward Island ---
+  "Charlottetown",
+  "Summerside",
+  "Stratford",
+  "Cornwall (PEI)",
+
+  // --- Quebec ---
+  "Montreal",
+  "Quebec City",
+  "Laval",
+  "Gatineau",
+  "Longueuil",
+  "Sherbrooke",
+  "Saguenay",
+  "Trois-Rivières",
+  "Terrebonne",
+  "Saint-Jean-sur-Richelieu",
+  "Repentigny",
+  "Brossard",
+  "Drummondville",
+  "Saint-Jérôme",
+  "Granby",
+  "Blainville",
+  "Mirabel",
+  "Rimouski",
+  "Shawinigan",
+  "Châteauguay",
+  "Mascouche",
+  "Saint-Hyacinthe",
+  "Victoriaville",
+  "Rouyn-Noranda",
+
+  // --- Saskatchewan ---
+  "Saskatoon",
+  "Regina",
+  "Prince Albert",
+  "Moose Jaw",
+  "Swift Current",
+  "North Battleford",
+  "Yorkton",
+  "Estevan",
+  "Weyburn",
+
+  // --- Yukon ---
+  "Whitehorse",
+  "Dawson City",
+  "Watson Lake",
+];
+
+
 const Cart = () => {
   const navigate = useNavigate();
   const {
@@ -54,6 +238,10 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const [submit, setSubmit] = useState(false);
   const [promodiscount, setpromodiscount] = useState(false);
+  const [showCityList, setShowCityList] = useState(false);
+  const [paymentMode, setPaymentMode] = useState("COD");
+
+
 
   const [form, setForm] = useState({
     name: "",
@@ -127,8 +315,8 @@ const Cart = () => {
     if (promodiscount) totalDiscount += promodiscount;
 
     if (totalDiscount > 0) {
-      const discountAmount = (item.actualPrice * totalDiscount) / 100;
-      const discountedPrice = item.actualPrice - discountAmount;
+      const discountAmount = (item.sellingPrice * totalDiscount) / 100;
+      const discountedPrice = item.sellingPrice - discountAmount;
       return discountedPrice * item.quantity;
     }
 
@@ -138,7 +326,7 @@ const Cart = () => {
   // Totals
   const actualTotal = useMemo(() => {
     return cartItems.reduce(
-      (acc, item) => acc + item.actualPrice * item.quantity,
+      (acc, item) => acc + item.sellingPrice * item.quantity,
       0
     );
   }, [cartItems]);
@@ -269,13 +457,33 @@ const Cart = () => {
         totalPrice: grandTotal, // total including tax + delivery
         session_id,
       };
+      if (paymentMode === "ONLINE") {
+  try {
+    const sessionRes = await apiClient.post("/payment/create-checkout-session", {
+      amount: grandTotal,
+      orderData: placeOrderPayload, // we pack everything here
+    });
+
+    window.location.href = sessionRes.data.url; // redirect to Stripe
+    return;
+
+  } catch (err) {
+    console.error("Stripe session error:", err);
+    alert("Unable to start online payment.");
+    setSubmit(false);
+    return;
+  }
+
+
+}
+
 
       await apiClient.post(`/orders`, placeOrderPayload);
 
       setOrderPlaced(true);
       // 🧼 Clear promo-related data so message disappears
-setpromodiscount(false);
-applyPromoCode(null);
+      setpromodiscount(false);
+      applyPromoCode(null);
       navigate("/checkout-success");
       localStorage.removeItem("cart");
       localStorage.removeItem("sessionId");
@@ -585,9 +793,9 @@ applyPromoCode(null);
               onClick={() => {
                 if (!isLoggedIn) {
                   setIsLoginOpen(true);
-                   // 🧼 Clear promo data after login (prevents stale promo msg)
-    
-      setPromoCodeInput("");
+                  // 🧼 Clear promo data after login (prevents stale promo msg)
+
+                  setPromoCodeInput("");
                   return;
                 }
                 setShowCheckout(true);
@@ -716,18 +924,45 @@ applyPromoCode(null);
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
+                <div className="relative">
                   <input
                     type="text"
                     placeholder="City"
                     value={form?.city || ""}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    className="px-3 w-full py-2 border border-gray-300 rounded-md"
+                    onChange={(e) => {
+                      setForm({ ...form, city: e.target.value });
+                      setShowCityList(true);
+                    }}
+                    onFocus={() => setShowCityList(true)}
+                    onBlur={() => setTimeout(() => setShowCityList(false), 150)}
+                    className="px-3 w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+
+                  {/* Dropdown City List */}
+                  {showCityList && (
+                    <ul className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
+                      {canadianCities
+                        .filter((city) =>
+                          city.toLowerCase().includes((form.city || "").toLowerCase())
+                        )
+                        .slice(0, 10)
+                        .map((city, i) => (
+                          <li
+                            key={i}
+                            onMouseDown={() => setForm({ ...form, city })}
+                            className="px-3 py-2 text-sm hover:bg-blue-100 cursor-pointer"
+                          >
+                            {city}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+
                   {errors.city && (
                     <p className="text-red-500 text-sm mt-1">{errors.city}</p>
                   )}
                 </div>
+
                 <div>
                   <select
                     value={form.state}
@@ -753,6 +988,17 @@ applyPromoCode(null);
                   <p className="text-red-500 text-sm mt-1">{errors.zip}</p>
                 )}
               </div>
+              <div className="mt-4">
+  <label className="font-medium">Payment Mode:</label>
+  <select
+    className="w-full border px-3 py-2 rounded-md"
+    value={paymentMode}
+    onChange={(e) => setPaymentMode(e.target.value)}
+  >
+    <option value="COD">Cash on Delivery</option>
+    <option value="ONLINE">Online Payment</option>
+  </select>
+</div>
             </div>
 
             <div className="flex gap-3 mt-6">

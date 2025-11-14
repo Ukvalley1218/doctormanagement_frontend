@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { HeadProvider, Title, Meta, Link as HeadLink } from "react-head";
+
 import {
   ShoppingCart,
   Star,
@@ -119,9 +121,9 @@ function Home() {
       const response = await apiClient.get("/products?limit=4");
       console.log(response.data);
       // ✅ Filter only active medicines
-    const activeMedicines = (response.data.products || []).filter(
-      (product) => product.status === "Active"
-    );
+      const activeMedicines = (response.data.products || []).filter(
+        (product) => product.status === "Active"
+      );
       setProduct(activeMedicines);
     } catch (error) {
       console.log(error.response);
@@ -133,9 +135,9 @@ function Home() {
       const response = await apiClient.get("/doctors?limit=3");
       console.log(response.data.doctors);
       // ✅ Filter only active doctors
-    const activeDoctors = (response.data.doctors || []).filter(
-      (doctor) => doctor.status === "Active"
-    );
+      const activeDoctors = (response.data.doctors || []).filter(
+        (doctor) => doctor.status === "Active"
+      );
 
       setDoctors(activeDoctors);
     } catch (error) {
@@ -189,7 +191,7 @@ function Home() {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
   const [errors, setErrors] = useState({});
-   const validateForm = () => {
+  const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     // ✅ Allows international phone numbers (+, spaces, parentheses, hyphens)
@@ -246,6 +248,225 @@ function Home() {
       setLoading(false);
     }
   };
+  {/* ✅ Product Card Component inside Home.jsx */ }
+  const ProductCard = ({
+    product,
+    getStockStyle,
+    getCartItem,
+    handleQuantityChange,
+    handleAddToCart,
+    handleBuyNow,
+  }) => {
+    const style = getStockStyle(product.stock);
+    const discount =
+      product.actualPrice && product.sellingPrice
+        ? Math.round(
+          ((product.actualPrice - product.sellingPrice) /
+            product.actualPrice) *
+          100
+        )
+        : 0;
+
+    const images =
+      product.images && product.images.length > 0
+        ? [product.mainImage, ...product.images]
+        : [product.mainImage];
+
+    const [mainImg, setMainImg] = useState(images[0]);
+
+    return (
+      <div
+        key={product._id}
+        className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden border border-gray-100 relative"
+      >
+        {/* Discount Badge */}
+        {discount > 0 && (
+          <div className="absolute top-3 right-3 bg-pink-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+            {discount}% OFF
+          </div>
+        )}
+
+        {/* Wishlist Icon */}
+        <button className="absolute top-3 left-3 bg-white p-2 rounded-full shadow hover:bg-pink-50 transition">
+          <Heart className="w-4 h-4 text-pink-500" />
+        </button>
+
+        {/* Product Image */}
+        {/* 🔹 Product Image Section with Overlay Slider */}
+        <div className="relative bg-gray-50 rounded-t-2xl overflow-hidden">
+          {/* Main Product Image */}
+          <Link to={`/product_details/${product._id}`}>
+            <img
+              src={mainImg}
+              alt={product.name}
+              className="w-full h-60 object-cover transition-transform duration-300 hover:scale-105"
+            />
+
+            {/* Stock Badge */}
+            <p
+              className={`absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full shadow-md ${style.textColor} ${style.bgColor}`}
+            >
+              {style.text}
+            </p>
+
+            {/* Discount Badge */}
+            {discount > 0 && (
+              <div className="absolute top-3 right-3 bg-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                {discount}% OFF
+              </div>
+            )}
+
+          </Link>
+          {/* 🔹 Thumbnail Slider Overlayed at Bottom of Image */}
+          {images && images.length > 1 && (
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[180px] flex items-center justify-center gap-2 px-3 py-1 bg-white/40 backdrop-blur-md rounded-lg shadow-md">
+              {/* Left Arrow */}
+              <button
+                onClick={() =>
+                  setMainImg(
+                    images[
+                    (images.indexOf(mainImg) - 1 + images.length) % images.length
+                    ]
+                  )
+                }
+                className="p-0.5 rounded-full hover:bg-gray-100 transition"
+              >
+                <ChevronDown className="rotate-90 w-4 h-4 text-black border border-black rounded-full" />
+              </button>
+
+              {/* Thumbnails (half-width center scrollable area) */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide px-1 py-1 w-full justify-center">
+                {images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    onClick={() => setMainImg(img)}
+                    className={`w-8 h-8 rounded-md border cursor-pointer object-cover transition-all duration-200 ${mainImg === img
+                        ? "border-blue-500 scale-110"
+                        : "border-gray-200 hover:border-gray-400"
+                      }`}
+                  />
+                ))}
+              </div>
+
+              {/* Right Arrow */}
+              <button
+                onClick={() =>
+                  setMainImg(
+                    images[(images.indexOf(mainImg) + 1) % images.length]
+                  )
+                }
+                className="p-0.5 rounded-full hover:bg-gray-100 transition"
+              >
+                <ChevronDown className="-rotate-90 w-4 h-4 text-black border border-black rounded-full" />
+              </button>
+            </div>
+          )}
+
+        </div>
+
+        {/* Product Info */}
+        {/* Product Info */}
+        <div className="flex flex-col flex-1 p-4 text-left">
+
+          {/* Top row: Name + Price */}
+          <Link to={`/product_details/${product._id}`}>
+            <div className="flex items-center justify-between mb-2">
+              {/* Product Name */}
+              <h3
+                className="font-semibold text-[#2D3748] text-base truncate max-w-[65%]"
+                title={product.name}
+              >
+                {product.name}
+              </h3>
+
+              {/* Price */}
+              <div className="text-right">
+                {product.actualPrice && (
+                  <span className="text-gray-400 text-sm line-through  align-center">
+                    ${product.actualPrice}
+                  </span>
+                )}
+                <span className="text-blue-600 ml-1 font-extrabold text-xl">
+                  ${product.sellingPrice}
+                </span>
+              </div>
+            </div>
+
+            {/* Description below */}
+            <p className="text-gray-600 text-xs leading-snug line-clamp-2 mb-4">
+              {product.description.split(" ").slice(0, 15).join(" ")}
+              {product.description.split(" ").length > 15 ? "..." : ""}
+            </p>
+          </Link>
+
+
+
+
+          {/* Cart Section */}
+          <div className="mt-auto space-y-2">
+            {(() => {
+              const cartItem = getCartItem(product._id);
+              if (cartItem && cartItem.quantity > 0) {
+                return (
+                  <>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleQuantityChange(product._id, -1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-8 text-center font-medium text-sm">
+                        {cartItem.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQuantityChange(product._id, 1)}
+                        className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <Link to="/cart">
+                      <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold hover:from-green-600 hover:to-green-700 transition">
+                        <Check className="w-4 h-4" />
+                        Go to Cart
+                      </button>
+                    </Link>
+                  </>
+                );
+              } else {
+                return (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className={`cursor-pointer w-1/2 py-2 rounded-lg border text-sm font-medium flex items-center justify-center gap-1 transition ${product.stock === 0
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "border-blue-500 text-blue-600 hover:bg-blue-50"
+                        }`}
+                      disabled={product.stock <= 0}
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={() => handleBuyNow(product)}
+                      className="cursor-pointer w-1/2 bg-gradient-to-r from-[#358abf] via-[#3a8cb3] to-[#679735] text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold hover:opacity-90 transition"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      Buy Now
+                    </button>
+                  </div>
+                );
+              }
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   if (loading) {
     return (
@@ -259,6 +480,39 @@ function Home() {
   }
 
   return (
+    <>
+    <Title>
+    HealCure — Expert Medical Care | Online Doctors, Medicines & Appointments
+  </Title>
+
+  <Meta
+    name="description"
+    content="HealCure offers expert online medical care with world-class therapists, easy appointment booking, and medicines delivered to your doorstep. Your health, our priority."
+  />
+
+  <Meta
+    name="keywords"
+    content="online medical care, doctor consultation, book appointments, healthcare services, medicine delivery, therapists online, telemedicine, virtual healthcare, digital health, online pharmacy"
+  />
+
+  {/* Open Graph */}
+  <Meta property="og:title" content="HealCure — Expert Medical Care You Can Trust" />
+  <Meta
+    property="og:description"
+    content="Consult with world-class doctors, order medicines, and access advanced healthcare from home."
+  />
+  <Meta property="og:url" content="https://healcure.ca/" />
+  <Meta property="og:type" content="website" />
+  <Meta property="og:image" content="https://healcure.ca/favicon.png" />
+
+  {/* Twitter Card */}
+  <Meta name="twitter:card" content="summary_large_image" />
+  <Meta name="twitter:title" content="HealCure — Expert Medical Care You Can Trust" />
+  <Meta
+    name="twitter:description"
+    content="Online doctor consultations, appointments, and medicines delivered."
+  />
+  <Meta name="twitter:image" content="https://healcure.ca/favicon.png" />
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
 
@@ -356,115 +610,110 @@ function Home() {
                 <div className="bg-gradient-to-r from-[#e8f2fd] to-[#d8ede7] rounded-3xl shadow-xl p-8 backdrop-blur-sm border border-white/50">
                   <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Find the best</h3>
                   <form className="space-y-4" onSubmit={handleSubmit}>
-      {/* Name */}
-      <div>
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
-          onChange={handleInputChange}
-          className={`w-full px-4 py-3 rounded-xl bg-white border ${
-            errors.name ? "border-red-500" : "border-gray-200"
-          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-        />
-        {errors.name && (
-          <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-        )}
-      </div>
+                    {/* Name */}
+                    <div>
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-xl bg-white border ${errors.name ? "border-red-500" : "border-gray-200"
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                      />
+                      {errors.name && (
+                        <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                      )}
+                    </div>
 
-      {/* Email */}
-      <div>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email ID"
-          value={formData.email}
-          onChange={handleInputChange}
-          className={`w-full px-4 py-3 rounded-xl bg-white border ${
-            errors.email ? "border-red-500" : "border-gray-200"
-          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-        )}
-      </div>
+                    {/* Email */}
+                    <div>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="Email ID"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-xl bg-white border ${errors.email ? "border-red-500" : "border-gray-200"
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                      />
+                      {errors.email && (
+                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                      )}
+                    </div>
 
-      {/* Phone */}
-      <div>
-        <input
-          type="tel"
-          name="phone"
-          placeholder="Phone No (e.g., +1 234 567 890)"
-          value={formData.phone}
-          onChange={handleInputChange}
-          className={`w-full px-4 py-3 rounded-xl bg-white border ${
-            errors.phone ? "border-red-500" : "border-gray-200"
-          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-        />
-        {errors.phone && (
-          <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-        )}
-      </div>
+                    {/* Phone */}
+                    <div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder="Phone No (e.g., +1 234 567 890)"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-xl bg-white border ${errors.phone ? "border-red-500" : "border-gray-200"
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                      />
+                      {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                      )}
+                    </div>
 
-      {/* Message */}
-      <div>
-        <textarea
-          name="message"
-          placeholder="How can we help you"
-          rows="4"
-          value={formData.message}
-          onChange={handleInputChange}
-          className={`w-full px-4 py-3 rounded-xl bg-white border ${
-            errors.message ? "border-red-500" : "border-gray-200"
-          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none`}
-        />
-        {errors.message && (
-          <p className="text-red-500 text-sm mt-1">{errors.message}</p>
-        )}
-      </div>
+                    {/* Message */}
+                    <div>
+                      <textarea
+                        name="message"
+                        placeholder="How can we help you"
+                        rows="4"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        className={`w-full px-4 py-3 rounded-xl bg-white border ${errors.message ? "border-red-500" : "border-gray-200"
+                          } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none`}
+                      />
+                      {errors.message && (
+                        <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+                      )}
+                    </div>
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={loading}
-        className={`cursor-pointer w-full text-white py-3 rounded-xl font-medium 
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`cursor-pointer w-full text-white py-3 rounded-xl font-medium 
         transition-all duration-300 shadow-md 
-        ${
-          loading
-            ? "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed"
-            : "bg-gradient-to-r from-[#3b8caf] to-[#63963f] hover:shadow-xl hover:-translate-y-0.5 active:scale-95 hover:from-[#4ea0c5] hover:to-[#79b54d]"
-        }`}
-      >
-        {loading ? (
-          <div className="flex justify-center items-center gap-2">
-            <svg
-              className="w-5 h-5 animate-spin text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-            <span>Sending...</span>
-          </div>
-        ) : (
-          "Contact us"
-        )}
-      </button>
-    </form>
+        ${loading
+                          ? "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-[#3b8caf] to-[#63963f] hover:shadow-xl hover:-translate-y-0.5 active:scale-95 hover:from-[#4ea0c5] hover:to-[#79b54d]"
+                        }`}
+                    >
+                      {loading ? (
+                        <div className="flex justify-center items-center gap-2">
+                          <svg
+                            className="w-5 h-5 animate-spin text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            ></path>
+                          </svg>
+                          <span>Sending...</span>
+                        </div>
+                      ) : (
+                        "Contact us"
+                      )}
+                    </button>
+                  </form>
 
                 </div>
               </div>
@@ -620,142 +869,22 @@ function Home() {
 
 
         {/* Product Grid */}
+        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {product &&
-            product.map((product) => {
-              const style = getStockStyle(product.stock);
-
-              return (
-                <div
-                  key={product._id}
-                  className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden border border-gray-100 relative"
-                >
-                  {/* Discount Badge */}
-                  {product.actualPrice && (
-                    <div className="absolute top-3 right-3 bg-pink-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                      {Math.round(
-                        ((product.actualPrice - product.sellingPrice) /
-                          product.actualPrice) *
-                        100
-                      )}
-                      % OFF
-                    </div>
-                  )}
-
-                  {/* Wishlist Icon */}
-                  <button className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow-sm hover:bg-pink-50 transition">
-                    <Heart className="w-4 h-4 text-pink-500" />
-                  </button>
-
-                  {/* Product Image */}
-                  <div className="relative bg-gray-50 flex items-center justify-center">
-                    <img
-                      src={product.mainImage}
-                      alt={product.name}
-                      className="object-contain h-full"
-                    />
-
-                    {/* Stock Badge (bottom-left of image) */}
-                    <p
-                      className={`absolute bottom-3 left-3 text-xs font-medium px-2 py-1 rounded-full ${style.textColor} ${style.bgColor}`}
-                    >
-                      {style.text}
-                    </p>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="flex flex-col flex-1 p-4 text-left">
-                    <Link to={`/product_details/${product._id}`}>
-                      <h3 className="font-semibold text-[#2D3748] text-base mb-1 truncate">
-                        {product.name}
-                      </h3>
-                      <p className="text-gray-500 text-xs mb-2 line-clamp-2">
-                        {product.description.split(" ").slice(0, 10).join(" ")}
-                        {product.description.split(" ").length > 10 ? "..." : ""}
-                      </p>
-                    </Link>
-
-                    {/* Price & Stock */}
-                    <div className="flex justify-between items-center mb-3">
-                      <div>
-                        <span className="text-[#007BFF] font-extrabold text-xl">
-                          ${product.sellingPrice}
-                        </span>
-                        {product.actualPrice && (
-                          <span className="text-gray-400 text-sm line-through ml-2">
-                            ${product.actualPrice}
-                          </span>
-                        )}
-                      </div>
-
-
-                    </div>
-
-                    {/* Cart Section */}
-                    <div className="mt-auto space-y-2">
-                      {(() => {
-                        const cartItem = getCartItem(product._id);
-                        if (cartItem && cartItem.quantity > 0) {
-                          return (
-                            <>
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(product._id, -1)
-                                  }
-                                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="w-8 text-center font-medium text-sm">
-                                  {cartItem.quantity}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(product._id, 1)
-                                  }
-                                  className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-
-                              <Link to="/cart">
-                                <button className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold hover:from-green-600 hover:to-green-700 transition">
-                                  <Check className="w-4 h-4" />
-                                  Go to Cart
-                                </button>
-                              </Link>
-                            </>
-                          );
-                        } else {
-                          return (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleAddToCart(product)}
-                                className={`cursor-pointer w-1/2 py-2 rounded-lg border text-sm font-medium flex items-center justify-center gap-1 transition ${product.stock === "Out of Stock"
-                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                  : "border-blue-500 text-blue-600 hover:bg-blue-50"
-                                  }`}
-                                disabled={product.stock <= "0"}
-                              >
-                                <ShoppingCart className="h-4 w-4" />
-                                Add to Cart
-                              </button>
-                              <button onClick={() => handleBuyNow(product)} className="cursor-pointer w-1/2 bg-gradient-to-r from-blue-500 to-green-500 text-white py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-semibold hover:opacity-90 transition">
-                                <ShoppingCart className="h-4 w-4" />
-                                Buy Now
-                              </button>
-                            </div>
-                          );
-                        }
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            product.map((item) => (
+              <ProductCard
+                key={item._id}
+                product={item}
+                getStockStyle={getStockStyle}
+                getCartItem={getCartItem}
+                handleQuantityChange={handleQuantityChange}
+                handleAddToCart={handleAddToCart}
+                handleBuyNow={handleBuyNow}
+              />
+            ))}
         </div>
+
         {/* Filter Bar */}
 
 
@@ -799,14 +928,16 @@ function Home() {
                   key={doctor._id}
                   className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
                 >
-                  {/* Doctor Image */}
-                  <div className="w-full h-64 flex items-center justify-center bg-gray-50 overflow-hidden">
-                    <img
-                      src={doctor.image}
-                      alt={doctor.name}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
+                  <Link to={`/book_appointment/${doctor._id}`}>
+                    {/* Doctor Image */}
+                    <div className="w-full h-64 flex items-center justify-center bg-gray-50 overflow-hidden">
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                  </Link>
 
 
                   {/* Doctor Details */}
@@ -820,9 +951,11 @@ function Home() {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-[#0066CC] hover:underline mb-1">
-                      {doctor.name}
-                    </h3>
+                    <Link to={`/book_appointment/${doctor._id}`}>
+                      <h3 className="text-lg font-semibold text-[#0066CC] hover:underline mb-1">
+                        {doctor.name}
+                      </h3>
+                    </Link>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                       {doctor.bio ||
                         "Lorem Ipsum is simply dummy text of the printing and typesetting industry."}
@@ -894,6 +1027,7 @@ function Home() {
       {/* Footer */}
       <Footer />
     </div>
+    </>
   );
 }
 

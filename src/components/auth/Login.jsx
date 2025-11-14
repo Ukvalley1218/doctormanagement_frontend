@@ -66,7 +66,7 @@ const Login = ({ navigation, onLoginSuccess }) => {
         <img
           src={login_image}
           alt="Medical professional"
-          className="max-h-155 md:max-h-130 lg:max-h-155 max-w-full object-contain"
+          className="max-h-155 md:max-h-130 lg:max-h-155 lg:w-[500px] object-contain"
         />
       </div>
 

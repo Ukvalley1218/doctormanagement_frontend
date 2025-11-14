@@ -12,7 +12,7 @@ const OrderDetails = () => {
     try {
       setLoading(true);
       const response = await apiClient.get(`/orders/${order_id}`);
-      console.log(response.data);
+      // console.log(response.data);
       setOrderdata(response.data);
     } catch (error) {
       console.log(error.response);
@@ -214,7 +214,7 @@ const OrderDetails = () => {
                       Qty: {order?.quantity}
                     </p>
                     <p className="font-medium text-center text-gray-900">
-                      ${order?.productId?.actualPrice.toFixed(2)}
+                      ${order?.productId?.sellingPrice.toFixed(2)}
                     </p>
                     {order?.status === "returned" && (
                       <p className="lg:hidden bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-medium">
@@ -261,7 +261,7 @@ const OrderDetails = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tax</span>
-                <span className="text-green-600">
+                <span className="text-gray-900">
                   $
                   {orderData &&
                     orderData.taxAmount &&

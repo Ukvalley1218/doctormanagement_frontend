@@ -358,7 +358,7 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
 
                 <Link to="/doctors" onClick={() => setIsMenuOpen(false)}>
                   <button className="cursor-pointer w-full text-left font-semibold text-gray-700 hover:text-blue-500">
-                    Therapists    
+                    Therapists
                   </button>
                 </Link>
 
@@ -401,46 +401,101 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
   // Full navbar with sidebar for logged-in users (not on home page)
   return (
     <div className="flex h-screen bg-gray-50">
-      {!isMobile && (
-        <div className="w-64 bg-white shadow-lg flex-shrink-0">
-          <div className="p-4">
-            <Link to="/">
-              <div className="cursor-pointer flex items-center mb-8">
-                <img
-                  src={logo}
-                  className="mr-2 w-[140px]"
-                  alt="Healcure Logo"
-                />
-              </div>
-            </Link>
+     {/* Sidebar (desktop & mobile toggleable) */}
+{!isMobile && (
+  <div
+    className={`bg-white shadow-lg flex-shrink-0 transition-all duration-300 ${
+      isSidebarOpen ? "w-64" : "w-20"
+    }`}
+  >
+    <div className="p-4 flex flex-col items-center relative">
+      {/* Logo + Collapse Button */}
+      <div className="flex items-center justify-between w-full mb-6">
+        <Link to="/">
+          <img
+            src={logo}
+            alt="Healcure Logo"
+            className={`transition-all duration-300 ${
+              isSidebarOpen ? "w-[140px]" : "hidden"
+            }`}
+          />
+        </Link>
 
-            <nav className="space-y-2">
-              {sidebarItems.map((item, index) => (
-                <Link key={index} to={item.link}>
-                  <button
-                    className={`cursor-pointer w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors ${isActiveRoute(item.link)
-                      ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                      : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                  >
-                    <item.icon className="h-5 w-5 mr-3" />
-                    {item.label}
-                  </button>
-                </Link>
-              ))}
-              <div
-                className="w-full flex cursor-pointer items-center px-4 py-3 text-left rounded-lg transition-colors text-red-600 hover:bg-gray-50"
-                onClick={handleLogout}
+        {/* Collapse/Expand Button */}
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 rounded-md hover:bg-gray-100 text-gray-600 transition"
+        >
+          {isSidebarOpen ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <Menu className="h-5 w-5" />
+          )}
+        </button>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="space-y-2 w-full">
+        {sidebarItems.map((item, index) => (
+          <Link key={index} to={item.link}>
+            <div className="relative group">
+              <button
+                className={`cursor-pointer w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
+                  isActiveRoute(item.link)
+                    ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
               >
-                <div>
-                  <LogOutIcon className="h-5 w-5 mr-3" />
-                </div>
-                Logout
-              </div>
-            </nav>
-          </div>
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+
+                {/* Sidebar label (visible only if open) */}
+                <span
+                  className={`ml-3 text-sm font-medium transition-opacity duration-300 ${
+                    isSidebarOpen ? "opacity-100" : "opacity-0 hidden"
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </button>
+
+              {/* Tooltip (only when sidebar is collapsed) */}
+              {!isSidebarOpen && (
+                <span className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs font-medium py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200">
+                  {item.label}
+                </span>
+              )}
+            </div>
+          </Link>
+        ))}
+
+        {/* Logout Button */}
+        <div className="relative group">
+          <button
+            onClick={handleLogout}
+            className="cursor-pointer w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors text-red-600 hover:bg-gray-50"
+          >
+            <LogOutIcon className="h-5 w-5" />
+            <span
+              className={`ml-3 text-sm font-medium transition-opacity duration-300 ${
+                isSidebarOpen ? "opacity-100" : "opacity-0 hidden"
+              }`}
+            >
+              Logout
+            </span>
+          </button>
+
+          {/* Tooltip for logout */}
+          {!isSidebarOpen && (
+            <span className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs font-medium py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity duration-200">
+              Logout
+            </span>
+          )}
         </div>
-      )}
+      </nav>
+    </div>
+  </div>
+)}
+
 
       {isMobile && isSidebarOpen && (
         <div

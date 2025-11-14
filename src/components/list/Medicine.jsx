@@ -12,6 +12,8 @@ import Footer from "../navigation/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../contexts/CartContext";
 import apiClient from "../../../apiclient";
+import { Title, Meta } from "react-head";
+
 
 const Medicine = () => {
   const { addToCart, cartCount, updateQuantity, items: cartItems } = useCart();
@@ -185,13 +187,48 @@ const Medicine = () => {
   }
 
   return (
+    <>
+
+    {/* Meta Description */}
+    <Title>Buy Medicines Online | Fast Delivery | HealCure Pharmacy</Title>
+
+  <Meta
+    name="description"
+    content="Order medicines online from HealCure. Find prescription medicines, OTC products, ayurvedic, allopathic & homeopathic medicines with fast and reliable delivery."
+  />
+
+  <Meta
+    name="keywords"
+    content="buy medicines online, online pharmacy, medicine delivery, ayurvedic medicines, allopathic medicines, homeopathic medicines, OTC medicines, online medical store, health products"
+  />
+
+  {/* Open Graph */}
+  <Meta property="og:title" content="Buy Medicines Online | HealCure Pharmacy" />
+  <Meta
+    property="og:description"
+    content="Order medicines online with fast delivery. Shop ayurvedic, allopathic & homeopathic medicines on HealCure."
+  />
+  <Meta property="og:url" content="https://healcure.ca/medicines" />
+  <Meta property="og:type" content="website" />
+  <Meta property="og:image" content="https://healcure.ca/favicon.png" />
+
+  {/* Twitter */}
+  <Meta name="twitter:card" content="summary_large_image" />
+  <Meta name="twitter:title" content="Buy Medicines Online | HealCure Pharmacy" />
+  <Meta
+    name="twitter:description"
+    content="Shop medicines online — fast delivery to your doorstep with HealCure."
+  />
+  <Meta name="twitter:image" content="https://healcure.ca/favicon.png" />
+
+  {/* code  */}
     <div className="min-h-screen">
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-0 mb-10">
         {/* Results Header */}
         {/* <div className="my-4">
           <p className="text-xl md:text-2xl font-bold text-[#2D3748]">
             Available Products ({totalProducts} results)
-          </p>
+            </p>
         </div> */}
         <div className="mx-6 mt-4">
           <button
@@ -275,17 +312,21 @@ const Medicine = () => {
           ) : (
             products.map((product) => (
               <div
-                key={product._id}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full"
+              key={product._id}
+              className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full"
               >
                 {/* Product Image */}
+                  <Link
+                  to={`/product_details/${product._id}`}>
                 <div className="bg-gray-100 flex items-center justify-center">
                   <img
                     src={product.mainImage}
                     alt={product.name}
                     className="w-full h-48 md:h-56 object-contain"
-                  />
+                    />
                 </div>
+                    </Link>
+                    
 
                 <Link
                   to={`/product_details/${product._id}`}
@@ -410,13 +451,13 @@ const Medicine = () => {
     <div className="flex flex-wrap justify-center gap-2 max-w-full">
       {[...Array(totalPages)].map((_, index) => (
         <button
-          key={index + 1}
-          onClick={() => handlePageChange(index + 1)}
-          className={`px-3 py-2 rounded-md text-sm sm:text-base ${
-            currentPage === index + 1
-              ? "bg-[#4285F4] text-white"
-              : "hover:bg-gray-200 transition-colors"
-          }`}
+        key={index + 1}
+        onClick={() => handlePageChange(index + 1)}
+        className={`px-3 py-2 rounded-md text-sm sm:text-base ${
+          currentPage === index + 1
+          ? "bg-[#4285F4] text-white"
+          : "hover:bg-gray-200 transition-colors"
+        }`}
         >
           {index + 1}
         </button>
@@ -458,6 +499,7 @@ const Medicine = () => {
         </div>
       )}
     </div>
+      </>
   );
 };
 

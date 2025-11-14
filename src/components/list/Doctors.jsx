@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import apiClient from "../../../apiclient";
 import { Link, useNavigate } from "react-router-dom";
+import { Title, Meta } from "react-head";
+
 
 const Doctors = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -142,6 +144,40 @@ const Doctors = () => {
   }
 
   return (
+    <>
+    {/* Meta Description */}
+    <Title>Find Doctors & Therapists | Book Online Appointments | HealCure</Title>
+
+  <Meta
+    name="description"
+    content="Find expert doctors and therapists on HealCure. Browse specialists, check ratings, compare consultation fees, and book appointments instantly online."
+  />
+
+  <Meta
+    name="keywords"
+    content="online doctors, book doctor appointment, therapists online, medical specialists, doctor consultation, virtual healthcare, online therapist, health consultation"
+  />
+
+  {/* Open Graph */}
+  <Meta property="og:title" content="Find Doctors & Book Appointments | HealCure" />
+  <Meta
+    property="og:description"
+    content="Search and book online appointments with trusted doctors and therapists on HealCure."
+  />
+  <Meta property="og:url" content="https://healcure.ca/doctors" />
+  <Meta property="og:type" content="website" />
+  <Meta property="og:image" content="https://healcure.ca/favicon.png" />
+
+  {/* Twitter */}
+  <Meta name="twitter:card" content="summary_large_image" />
+  <Meta name="twitter:title" content="Find Doctors & Book Appointments | HealCure" />
+  <Meta
+    name="twitter:description"
+    content="Consult with expert doctors & therapists instantly via HealCure."
+  />
+  <Meta name="twitter:image" content="https://healcure.ca/favicon.png" />
+
+  {/* Code  */}
     <div className="min-h-screen">
       {/* Search and Filter Section */}
       <section className="pt-6">
@@ -243,7 +279,7 @@ const Doctors = () => {
                       <div className="flex items-center gap-2 mb-4">
                         <DollarSign className="h-4 w-4 text-gray-400" />
                         <span className="text-lg font-bold text-[#0066CC]">
-                          ${doctor.consultationFee} consultation
+                          {doctor.consultationFee} consultation
                         </span>
                       </div>
                       <button className="cursor-pointer w-full bg-[#4285F4] text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium">
@@ -266,7 +302,7 @@ const Doctors = () => {
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
         className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+        >
         <ChevronDown className="h-4 w-4 rotate-90" />
       </button>
 
@@ -290,7 +326,7 @@ const Doctors = () => {
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         className="p-2 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+        >
         <ChevronDown className="h-4 w-4 -rotate-90" />
       </button>
     </div>
@@ -310,6 +346,7 @@ const Doctors = () => {
 
       <Footer />
     </div>
+        </>
   );
 };
 

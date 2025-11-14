@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import apiClient from "../../../apiclient";
+import { Title, Meta } from "react-head";
+
 
 const Product_details = () => {
   const { addToCart, cartCount, updateQuantity, items: cartItems } = useCart();
@@ -246,6 +248,20 @@ const Product_details = () => {
     }
   };
 
+  const [showFull, setShowFull] = useState(false);
+  const [showFulld, setShowFulld] = useState(false);
+
+   const description =
+    product?.description || "No description available for this product.";
+
+  // Split description into words
+  const words = description.split(" ");
+  const shortText = words.slice(0, 16).join(" ") + (words.length > 16 ? "..." : "");
+
+   
+  const wordse = description.split(" ");
+  const shortTexta =
+    wordse.slice(0, 10).join(" ") + (wordse.length > 10 ? "..." : "");
 
 
 
@@ -292,6 +308,44 @@ const Product_details = () => {
   const cartItem = cartItems.find((item) => item._id === product._id);
 
   return (
+    <>
+    {/* meta description */}
+    <Title>{product.name} – Buy Online | HealCure Pharmacy</Title>
+
+    <Meta
+      name="description"
+      content={`${product.name} – ${product.brand}. ${shortTexta} Buy online at the best price with fast delivery from HealCure.`}
+    />
+
+    <Meta
+      name="keywords"
+      content={`buy ${product.name}, ${product.brand} medicine, ${product.category}, online medicine, healthcare, pharmacy, purchase medicines online, ${product.name} price`}
+    />
+
+    {/* Open Graph */}
+    <Meta property="og:title" content={`${product.name} – Buy Online | HealCure`} />
+
+    <Meta
+      property="og:description"
+      content={`${product.name} – ${product.brand}. ${shortTexta} Order now with fast, secure delivery.`}
+    />
+
+    <Meta property="og:type" content="product" />
+    <Meta property="og:url" content={`https://healcure.ca/product/${product._id}`} />
+    <Meta property="og:image" content={product.mainImage} />
+
+    {/* Twitter Card */}
+    <Meta name="twitter:card" content="summary_large_image" />
+    <Meta name="twitter:title" content={`${product.name} – Buy Online`} />
+
+    <Meta
+      name="twitter:description"
+      content={`${product.name} – Buy from HealCure with trusted delivery.`}
+    />
+
+    <Meta name="twitter:image" content={product.mainImage} />
+
+    {/* code  */}
     <div className="min-h-screen">
       <div className="mx-4 mt-4">
 
@@ -397,7 +451,16 @@ const Product_details = () => {
             <div>
               <h3 className="text-sm font-medium text-gray-500 uppercase mb-1">{product.brand || "HealCure Pharma"}</h3>
               <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-              <p className="text-gray-600 mt-1">{product.description || "Promotes overall wellness and hormonal balance"}</p>
+              <p className="text-gray-600 mt-1">{showFulld ? description : shortTexta}{" "}
+       {showFulld ? description : shortTexta}{" "}
+      {wordse.length > 10 && (
+        <button
+          onClick={() => setShowFulld(!showFulld)}
+          className="text-blue-500 font-medium hover:underline focus:outline-none"
+        >
+          {showFulld ? "Read Less" : "Read More"}
+        </button>
+      )}</p>
             </div>
 
             {/* Ratings */}
@@ -490,10 +553,16 @@ const Product_details = () => {
   </h3>
 
   <p className="text-gray-700 text-xs sm:text-sm mb-4">
-    {product.description
-      ? product.description
-      : "No description available for this product."}
-  </p>
+      {showFull ? description : shortText}{" "}
+      {words.length > 16 && (
+        <button
+          onClick={() => setShowFull(!showFull)}
+          className="text-blue-500 font-medium hover:underline focus:outline-none"
+        >
+          {showFull ? "Read Less" : "Read More"}
+        </button>
+      )}
+    </p>
 
   <div className="grid grid-cols-2 gap-y-2 text-xs sm:text-sm">
     <span className="text-gray-500">Manufacturer:</span>
@@ -512,7 +581,7 @@ const Product_details = () => {
         ? new Date(product.expiry).toLocaleDateString("en-GB", {
             month: "short",
             year: "numeric",
-          })
+            })
         : "N/A"}
     </span>
   </div>
@@ -643,7 +712,7 @@ const Product_details = () => {
               <h3 className="text-lg font-semibold mb-4">Book a Doctor Appointment</h3>
               {/* <button
         className="w-full bg-[#3a81f5] text-white py-2 rounded-lg font-semibold hover:bg-blue-700 mb-3"
-      >
+        >
         Book Appointment
       </button> */}
 
@@ -670,8 +739,8 @@ const Product_details = () => {
         "customer reviews",
       ].map((tab) => (
         <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
+        key={tab}
+        onClick={() => setActiveTab(tab)}
           className={`py-3 sm:py-4 px-1 cursor-pointer border-b-2 font-medium text-xs sm:text-sm capitalize transition-colors whitespace-nowrap ${
             activeTab === tab
               ? "border-blue-500 text-blue-600"
@@ -918,8 +987,8 @@ const Product_details = () => {
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
                   {showAllReviews ? "Show Less" : "Show All Reviews"}
-                </button>
-              )}
+                  </button>
+                  )}
             </div>
           </div> */}
 
@@ -928,26 +997,26 @@ const Product_details = () => {
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <h5 className="text-lg font-semibold text-gray-900 mb-4">
                 Share Your Experience
-              </h5>
-              <form onSubmit={handleRatingSubmit}>
+                </h5>
+                <form onSubmit={handleRatingSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rating *
-                    </label>
-                    <div className="flex items-center gap-1">
-                      {renderInteractiveStars(userRating, setUserRating, true)}
-                      <span className="ml-2 text-sm text-gray-600">
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating *
+                </label>
+                <div className="flex items-center gap-1">
+                {renderInteractiveStars(userRating, setUserRating, true)}
+                <span className="ml-2 text-sm text-gray-600">
                         {userRating > 0 &&
-                          `${userRating} star${userRating > 1 ? "s" : ""}`}
-                      </span>
+                        `${userRating} star${userRating > 1 ? "s" : ""}`}
+                        </span>
                     </div>
                   </div>
-                </div>
+                  </div>
 
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Review *
+                  Your Review *
                   </label>
                   <textarea
                     value={userComment}
@@ -967,7 +1036,7 @@ const Product_details = () => {
                     type="submit"
                     disabled={submittingRating || userRating === 0}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
-                  >
+                    >
                     {submittingRating ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -985,16 +1054,16 @@ const Product_details = () => {
                       setUserComment("");
                     }}
                     className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-                  >
+                    >
                     Cancel
-                  </button>
+                    </button>
                 </div>
               </form>
-            </div>
-          )}
-
+              </div>
+              )}
+              
           <div className="space-y-4">
-            {totalReviews > 0 ? (
+          {totalReviews > 0 ? (
               (showAllReviews ? reviews : reviews.slice(0, 3)).map(
                 (review, index) => (
                   <div
@@ -1021,7 +1090,7 @@ const Product_details = () => {
 
                         <div className="flex items-center gap-2 mb-2">
                           <div className="flex">
-                            {renderStars(review.rating)}
+                          {renderStars(review.rating)}
                           </div>
                           <span className="text-xs text-gray-500">
                             {formatDate(review.createdAt || review.date)}
@@ -1029,11 +1098,11 @@ const Product_details = () => {
                         </div>
 
                         <p className="text-gray-700 text-sm leading-relaxed">
-                          {review.comment}
+                        {review.comment}
                         </p>
                       </div>
                     </div>
-                  </div>
+                    </div>
                 )
               )
             ) : (
@@ -1044,7 +1113,7 @@ const Product_details = () => {
               </div>
             )}
           </div>
-
+          
           {!showAllReviews && reviews.length > 3 && (
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
@@ -1095,6 +1164,7 @@ const Product_details = () => {
 
       <Footer />
     </div>
+          </>
   );
 };
 

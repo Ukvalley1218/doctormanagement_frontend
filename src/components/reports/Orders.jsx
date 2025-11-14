@@ -111,7 +111,6 @@ const Orders = () => {
     try {
       const response = await apiClient.get(`/orders/me?page=${currentPage}`);
       const { orders, totalPages, totalOrders, page } = response.data;
-
       // ✅ Transform API response to match UI
       const mappedOrders = orders.map((order) => ({
         id: order.orderId,
@@ -122,11 +121,13 @@ const Orders = () => {
           : "N/A",
         status: order.orderStatus,
         totalAmount: order.totalPrice,
+        productValue: order.productValue,
+        discountValue: order.discountAmount,
         items: order.items.map((i) => ({
           name: i.productId?.name || "Unknown Item",
           brand: i.productId?.brand || "Unknown Brand",
           quantity: i.quantity,
-          price: i.productId?.actualPrice || 0,
+          price: i.productId?.sellingPrice || 0,
         })),
         shippingAddress: `${order.shippingDetails?.apartment}, ${order.shippingDetails?.landmark}, ${order.shippingDetails?.address}, ${order.shippingDetails?.city}, ${order.shippingDetails?.state} - ${order.shippingDetails?.zip}`,
       }));
@@ -173,6 +174,7 @@ const Orders = () => {
   const formatCurrency = (value) => `$${Number(value).toFixed(2)}`;
 
   const getItemPrice = (item) => {
+    console.log(item.price)
     if (user?.userDiscount) {
       const discountAmount = (item.price * user.userDiscount) / 100;
       const discountedPrice = item.price - discountAmount;
@@ -180,6 +182,8 @@ const Orders = () => {
     }
     return item.price * item.quantity;
   };
+
+
 
   const OrderCard = ({ order }) => (
     <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 mb-4">
@@ -214,7 +218,7 @@ const Orders = () => {
             <span>{order.status}</span>
           </span>
           <span className="font-bold text-gray-900">
-            ${order.totalAmount?.toFixed(2)}
+            ${order.totalAmount.toFixed(2)}
           </span>
         </div>
       </div>
