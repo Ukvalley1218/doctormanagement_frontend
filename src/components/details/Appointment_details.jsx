@@ -20,6 +20,9 @@ const AppointmentDetails = () => {
   const [userComment, setUserComment] = useState("");
   const [userName, setUserName] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [aboutExpanded2, setAboutExpanded2] = useState(false);
+
 
   const navigate = useNavigate();
 
@@ -198,22 +201,35 @@ const AppointmentDetails = () => {
     });
   };
 
+  const aboutText =
+    data?.about ||
+    "Experienced and compassionate healthcare professional ensuring the highest standard of patient care.";
+
+  const aboutWords = aboutText.split(" ");
+  const isAboutLong = aboutWords.length > 40;
+
+  const displayedAbout = aboutExpanded
+    ? aboutText
+    : aboutWords.slice(0, 40).join(" ");
+  const displayedAbout2 = aboutExpanded2
+    ? aboutText
+    : aboutWords.slice(0, 40).join(" ");
   return (
     <>
-     {/* SEO TAGS */}
-    <Title>{data?.name} – Book Appointment | HealCure</Title>
+      {/* SEO TAGS */}
+      <Title>{data?.name} – Book Appointment | HealCure</Title>
 
-    <Meta
-      name="description"
-      content={`${data?.name} – ${data?.specialty}. Book doctor appointments online. Consultation fee: $${data?.consultationFee}. ${data?.about?.slice(
-        0,
-        140
-      )}...`}
-    />
+      <Meta
+        name="description"
+        content={`${data?.name} – ${data?.specialty}. Book doctor appointments online. Consultation fee: $${data?.consultationFee}. ${data?.about?.slice(
+          0,
+          140
+        )}...`}
+      />
 
-    <Meta
-      name="keywords"
-      content={`
+      <Meta
+        name="keywords"
+        content={`
         book doctor appointment,
         ${data?.name} doctor,
         ${data?.specialty} specialist,
@@ -223,540 +239,557 @@ const AppointmentDetails = () => {
         medical appointment booking,
         ${data?.location} doctors
       `}
-    />
+      />
 
-    {/* Open Graph */}
-    <Meta property="og:title" content={`${data?.name} – Book Appointment`} />
-    <Meta
-      property="og:description"
-      content={`${data?.specialty} | Consultation: $${data?.consultationFee}. Book online at HealCure.`}
-    />
-    <Meta property="og:type" content="profile" />
-    <Meta
-      property="og:url"
-      content={`https://healcure.ca/book_appointment/${doctor_id}`}
-    />
-    <Meta property="og:image" content={data?.image} />
+      {/* Open Graph */}
+      <Meta property="og:title" content={`${data?.name} – Book Appointment`} />
+      <Meta
+        property="og:description"
+        content={`${data?.specialty} | Consultation: $${data?.consultationFee}. Book online at HealCure.`}
+      />
+      <Meta property="og:type" content="profile" />
+      <Meta
+        property="og:url"
+        content={`https://healcure.ca/book_appointment/${doctor_id}`}
+      />
+      <Meta property="og:image" content={data?.image} />
 
-    {/* Twitter */}
-    <Meta name="twitter:card" content="summary_large_image" />
-    <Meta name="twitter:title" content={`${data?.name} – Doctor Appointment`} />
-    <Meta
-      name="twitter:description"
-      content={`Consult ${data?.name}, ${data?.specialty}. Book online instantly.`}
-    />
-    <Meta name="twitter:image" content={data?.image} />
+      {/* Twitter */}
+      <Meta name="twitter:card" content="summary_large_image" />
+      <Meta name="twitter:title" content={`${data?.name} – Doctor Appointment`} />
+      <Meta
+        name="twitter:description"
+        content={`Consult ${data?.name}, ${data?.specialty}. Book online instantly.`}
+      />
+      <Meta name="twitter:image" content={data?.image} />
 
-    {/* Code */}
-    
-    <div className="">
-      {/* Doctor Profile */}
-      <div className="mx-6 mt-4">
+      {/* Code */}
 
-        <button
-          onClick={() => navigate(-1)}
-          className="cursor-pointer flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back</span>
-        </button>
-      </div>
-      <div className="bg-white lg:mt-6 ">
+      <div className="">
+        {/* Doctor Profile */}
+        <div className="mx-6 mt-4">
 
-        <div className="bg-gray-50 min-h-screen pb-10 px-6">
-          {/* Top Section: Doctor Info */}
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
-            {/* LEFT: Doctor Details */}
-            <div className="bg-white rounded-2xl shadow-md p-6 mt-6 lg:mt-0">
-              <div className="flex flex-col items-center">
-                <img
-                  src={data?.image || dr}
-                  alt={data?.name}
-                  className="w-32 h-32 rounded-lg object-cover mb-4 shadow"
-                />
-                <h2 className="text-xl font-bold text-blue-700">{data?.name}</h2>
-                <p className="text-gray-600 font-semibold">
-                  {data?.specialty || "D.O.M.P"}
-                </p>
-                <p className="text-gray-500">
-                  {data?.experience || "25 yrs. of practice"} of practise
-                </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="cursor-pointer flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-200 transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back</span>
+          </button>
+        </div>
+        <div className="bg-white lg:mt-6 ">
 
-                <p className="text-[#f87215] font-bold text-lg mt-2">
-                  ${data?.consultationFee || 120} / Per Visit
-                </p>
-                <p className="text-sm text-center text-[#f87215] mt-1">
-                  Free Consultation: Available for specific treatments
-                </p>
+          <div className="bg-gray-50 min-h-screen pb-10 px-6">
+            {/* Top Section: Doctor Info */}
+            <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-8">
+              {/* LEFT: Doctor Details */}
+              <div className="bg-white rounded-2xl shadow-md p-6 mt-6 lg:mt-0">
+                <div className="flex flex-col items-center">
+                  <img
+                    src={data?.image || dr}
+                    alt={data?.name}
+                    className="w-32 h-32 rounded-lg object-cover mb-4 shadow"
+                  />
+                  <h2 className="text-xl font-bold text-blue-700">{data?.name}</h2>
+                  <p className="text-gray-600 text-center font-semibold">
+                    {data?.specialty || "D.O.M.P"}
+                  </p>
+                  <p className="text-gray-500">
+                    {data?.experience || "25 yrs. of practice"} of practise
+                  </p>
 
-                <p className="text-gray-700 text-sm text-center mt-3 leading-relaxed">
-                  {data?.about ||
-                    "Experienced and compassionate healthcare professional ensuring the highest standard of patient care."}
-                </p>
+                  <p className="text-[#f87215] font-bold text-lg mt-2">
+                    ${data?.consultationFee || 120} / Per Visit
+                  </p>
+                  <p className="text-sm text-center text-[#f87215] mt-1">
+                    Free Consultation: Available for specific treatments
+                  </p>
+
+                  <p className="text-gray-700 text-sm text-center mt-3 leading-relaxed">
+                    {displayedAbout}
+                    {isAboutLong && !aboutExpanded && "... "}
+                    {isAboutLong && (
+                      <button
+                        onClick={() => setAboutExpanded(!aboutExpanded)}
+                        className="ml-1 text-blue-600 font-medium hover:underline"
+                      >
+                        {aboutExpanded ? "Read Less" : "Read More"}
+                      </button>
+                    )}
+                  </p>
+
+                </div>
               </div>
-            </div>
 
-            {/* MIDDLE: Contacts + Treatments */}
-            <div className="flex flex-col gap-6">
-              {/* Contact Card */}
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                <h3 className="font-semibold text-lg mb-4">Contacts</h3>
+              {/* MIDDLE: Contacts + Treatments */}
+              <div className="flex flex-col gap-6">
+                {/* Contact Card */}
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                  <h3 className="font-semibold text-lg mb-4">Contacts</h3>
 
-                <div className="space-y-3 text-sm">
-                  {/* Address */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-500 w-full sm:w-[30%]">Address:</span>
-                    <span className="font-medium text-gray-800 w-full sm:w-[70%]">
-                      {data?.location || "Ontario"}
-                    </span>
+                  <div className="space-y-3 text-sm">
+                    {/* Address */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-gray-500 w-full sm:w-[30%]">Address:</span>
+                      <span className="font-medium text-gray-800 w-full sm:w-[70%]">
+                        {data?.location || "Ontario"}
+                      </span>
+                    </div>
+
+                    {/* Office */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-gray-500 w-full sm:w-[30%]">Office:</span>
+                      <span className="font-medium text-gray-800 w-full sm:w-[70%]">
+                        {data?.office || "Suite 402, Downtown Plaza"}
+                      </span>
+                    </div>
+
+                    {/* Mobile */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-gray-500 w-full sm:w-[30%]">Mobile:</span>
+                      <span className="font-medium text-gray-800 w-full sm:w-[70%]">
+                        {data?.number || "+1 (555) 123-4567"}
+                      </span>
+                    </div>
+
+                    {/* Email */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-gray-500 w-full sm:w-[30%]">Email:</span>
+                      <span className="text-orange-600 w-full sm:w-[70%]">
+                        {data?.email || "info@domain.ltd"}
+                      </span>
+                    </div>
+
+                    {/* Website */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-gray-500 w-full sm:w-[30%]">Website:</span>
+                      <a
+                        href={data?.website || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 w-full sm:w-[70%]"
+                      >
+                        {data?.website || "https://domain.ltd"}
+                      </a>
+                    </div>
                   </div>
 
-                  {/* Office */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-500 w-full sm:w-[30%]">Office:</span>
-                    <span className="font-medium text-gray-800 w-full sm:w-[70%]">
-                      {data?.office || "Suite 402, Downtown Plaza"}
-                    </span>
-                  </div>
 
-                  {/* Mobile */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-500 w-full sm:w-[30%]">Mobile:</span>
-                    <span className="font-medium text-gray-800 w-full sm:w-[70%]">
-                      {data?.number || "+1 (555) 123-4567"}
-                    </span>
-                  </div>
-
-                  {/* Email */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-500 w-full sm:w-[30%]">Email:</span>
-                    <span className="text-orange-600 w-full sm:w-[70%]">
-                      {data?.email || "info@domain.ltd"}
-                    </span>
-                  </div>
-
-                  {/* Website */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-gray-500 w-full sm:w-[30%]">Website:</span>
-                    <a
-                      href={data?.website || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 w-full sm:w-[70%]"
-                    >
-                      {data?.website || "https://domain.ltd"}
-                    </a>
-                  </div>
                 </div>
 
-
-              </div>
-
-              {/* Treatments Card */}
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                <h3 className="font-semibold text-lg mb-4">Treatments</h3>
-                <div className="flex flex-wrap gap-2">
-                  {(data?.services || [
-                    "Botox & Dermal Fillers",
-                    "Laser Treatments",
-                    "Stem Cell Therapy",
-                    "Osteopathy Treatments",
-                    "Weight Management",
+                {/* Treatments Card */}
+                <div className="bg-white rounded-2xl shadow-md p-6">
+                  <h3 className="font-semibold text-lg mb-4">Treatments</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(data?.services || [
+                      "Botox & Dermal Fillers",
+                      "Laser Treatments",
+                      "Stem Cell Therapy",
+                      "Osteopathy Treatments",
+                      "Weight Management",
                     ]).map((treat, i) => {
                       // soft color palette
                       const colors = [
                         "bg-blue-100 text-blue-800",
                         "bg-green-100 text-green-800",
-                      "bg-pink-100 text-pink-800",
-                      "bg-yellow-100 text-yellow-800",
-                      "bg-purple-100 text-purple-800",
-                      "bg-teal-100 text-teal-800",
-                      "bg-orange-100 text-orange-800",
-                    ];
-                    const color = colors[i % colors.length];
-                    return (
-                      <span
-                      key={i}
-                        className={`px-3 py-1 text-sm font-medium rounded-full border border-transparent ${color}`}
-                      >
-                        {treat}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-
-            </div>
-
-            {/* RIGHT: Consultation Card */}
-            <div className="bg-[#f8f9fb] rounded-2xl shadow-md p-6 flex flex-col justify-between h-[280px]">
-              <div>
-                <h3 className="font-semibold text-lg mb-4">Consultation Details</h3>
-                <div className="space-y-2 text-sm mb-4">
-                  <div className="flex justify-between">
-                    <span>In-Person Consultation</span>
-                    <span className="font-medium">${data.consultationFee}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Video Consultation</span>
-                    <span className="font-medium">$120</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Follow-up Visit</span>
-                    <span className="font-medium">$100</span>
+                        "bg-pink-100 text-pink-800",
+                        "bg-yellow-100 text-yellow-800",
+                        "bg-purple-100 text-purple-800",
+                        "bg-teal-100 text-teal-800",
+                        "bg-orange-100 text-orange-800",
+                      ];
+                      const color = colors[i % colors.length];
+                      return (
+                        <span
+                          key={i}
+                          className={`px-3 py-1 text-sm font-medium rounded-full border border-transparent ${color}`}
+                        >
+                          {treat}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
+
               </div>
 
-              {/* Fixed bottom buttons inside the card */}
-              <div className="mt-auto pt-4">
-                <button
-                  onClick={() =>
-                    window.open(data?.calendlyUrl || "https://calendly.com/yourlink", "_blank")
-                  }
-                  className="cursor-pointer w-full bg-[#3a81f5] text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition"
-                >
-                  Book Appointment
-                </button>
-
-                <button
-                  onClick={() => {
-                    const phoneNumber = data?.number || "919876543210"; // 👈 replace with doctor’s WhatsApp number (include country code, no +)
-                    const message = encodeURIComponent("Hello Doctor, I’d like to chat with you.");
-                    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
-                  }}
-                  className="cursor-pointer w-full bg-[#0fb880] text-white py-2 rounded-lg font-medium hover:bg-green-700 mt-2 transition"
-                >
-                  Chat Now
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Bottom Section: Tabs + Contact Form */}
-<div className="max-w-6xl mx-auto mt-10 flex flex-col lg:flex-row gap-8 px-4 sm:px-6 md:px-0">
-  {/* DOCTOR INFO SECTION - TABS ON TOP */}
-  <div className="lg:w-[68%] bg-white rounded-3xl shadow-sm p-4 sm:p-6">
-    {/* Tabs Header */}
-    <div className="border-b border-gray-200 mb-6 overflow-x-auto">
-      <nav className="flex space-x-4 sm:space-x-6 min-w-max">
-        {["overview", "experience & education", "patient feedback", "FAQs"].map(
-          (tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`cursor-pointer whitespace-nowrap pb-3 text-sm sm:text-base font-medium capitalize border-b-2 transition-colors ${
-                activeTab === tab
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab}
-            </button>
-          )
-        )}
-      </nav>
-    </div>
-
-    {/* Tab Content */}
-    <div>
-      {/* Overview */}
-      {activeTab === "overview" && (
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
-            Overview
-          </h3>
-          <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-            {data?.about ||
-              "Experienced healthcare professional providing holistic treatment and care."}
-          </p>
-        </div>
-      )}
-
-      {/* Experience */}
-      {activeTab === "experience & education" && (
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
-            Experience
-          </h3>
-          <p className="text-gray-700 mb-2 text-sm sm:text-base">
-            {data?.experience || "15+ years of clinical experience"}
-          </p>
-          <p className="text-gray-600 text-sm sm:text-base">
-            Graduated in:{" "}
-            <span className="font-medium">
-              {data?.specialty || "D.O.M.P (Osteopathy)"}
-            </span>
-          </p>
-        </div>
-      )}
-
-      {/* FAQs */}
-      {activeTab === "FAQs" && (
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
-            Frequently Asked Questions
-          </h3>
-
-          <div className="space-y-4">
-            {[
-              {
-                q: "How do I book an appointment with the doctor?",
-                a: "You can easily book an appointment through our online booking system or by calling the clinic directly. Walk-ins are also welcome, but pre-booked slots are prioritized.",
-              },
-              {
-                q: "What should I bring for my first visit?",
-                a: "Please carry your previous medical records, prescription details, and any relevant test reports. It helps the doctor assess your condition more accurately.",
-              },
-              {
-                q: "How should I take my prescribed medicines?",
-                a: "Follow the dosage and timing strictly as prescribed. Always take medicines after food unless otherwise directed by your doctor. Avoid self-adjusting the dosage.",
-              },
-              {
-                q: "Can I contact the doctor after my appointment?",
-                a: "Yes. Follow-up consultations can be booked online or by phone. For urgent concerns, please contact our clinic helpline for immediate guidance.",
-              },
-            ].map((faq, i) => (
-              <div
-                key={i}
-                className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
-              >
-                <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">
-                  {faq.q}
-                </h4>
-                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
-                  {faq.a}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Patient Feedback */}
-      {activeTab === "patient feedback" && (
-        <div>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
-            <h4 className="text-base sm:text-lg font-semibold text-gray-900">
-              Recent Reviews
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setShowRatingForm(!showRatingForm)}
-                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition"
-              >
-                Write Review
-              </button>
-              <button
-                onClick={() => setShowAllReviews(!showAllReviews)}
-                className="cursor-pointer text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
-              >
-                {showAllReviews ? "Show Less" : "Show All Reviews"}
-              </button>
-            </div>
-          </div>
-
-          {/* Rating Form */}
-          {showRatingForm && (
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h5 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
-                Share Your Experience
-              </h5>
-              <form onSubmit={handleRatingSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rating *
-                    </label>
-                    <div className="flex items-center gap-1">
-                      {renderInteractiveStars(userRating, setUserRating, true)}
-                      <span className="ml-2 text-xs sm:text-sm text-gray-600">
-                        {userRating > 0 &&
-                          `${userRating} star${userRating > 1 ? "s" : ""}`}
-                      </span>
+              {/* RIGHT: Consultation Card */}
+              <div className="bg-[#f8f9fb] rounded-2xl shadow-md p-6 flex flex-col justify-between h-[280px]">
+                <div>
+                  <h3 className="font-semibold text-lg mb-4">Consultation Details</h3>
+                  <div className="space-y-2 text-sm mb-4">
+                    <div className="flex justify-between">
+                      <span>In-Person Consultation</span>
+                      <span className="font-medium">${data.consultationFee}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Video Consultation</span>
+                      <span className="font-medium">$120</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Follow-up Visit</span>
+                      <span className="font-medium">$100</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Review *
-                  </label>
-                  <textarea
-                    value={userComment}
-                    onChange={(e) => setUserComment(e.target.value)}
-                    rows="4"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
-                    placeholder="Share your experience with this doctor..."
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {userComment.length}/500 characters
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
+                {/* Fixed bottom buttons inside the card */}
+                <div className="mt-auto pt-4">
                   <button
-                    type="submit"
-                    disabled={submittingRating}
-                    className="cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-2"
+                    onClick={() =>
+                      window.open(data?.calendlyUrl || "https://calendly.com/yourlink", "_blank")
+                    }
+                    className="cursor-pointer w-full bg-[#3a81f5] text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition"
                   >
-                    {submittingRating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit Review"
-                    )}
+                    Book Appointment
                   </button>
+
                   <button
-                    type="button"
                     onClick={() => {
-                      setShowRatingForm(false);
-                      setUserRating(0);
-                      setUserComment("");
-                      setUserName("");
+                      const phoneNumber = data?.number || "919876543210"; // 👈 replace with doctor’s WhatsApp number (include country code, no +)
+                      const message = encodeURIComponent("Hello Doctor, I’d like to chat with you.");
+                      window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
                     }}
-                    className="cursor-pointer bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition"
+                    className="cursor-pointer w-full bg-[#0fb880] text-white py-2 rounded-lg font-medium hover:bg-green-700 mt-2 transition"
                   >
-                    Cancel
+                    Chat Now
                   </button>
                 </div>
-              </form>
+              </div>
+
             </div>
-          )}
 
-          {/* Reviews */}
-          <div className="space-y-4">
-            {totalReviews > 0 ? (
-              (showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
-                <div
-                  key={review.id}
-                  className="border-b border-gray-100 pb-4 last:border-b-0"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-600" />
+            {/* Bottom Section: Tabs + Contact Form */}
+            <div className="max-w-6xl mx-auto mt-10 flex flex-col lg:flex-row gap-8 px-4 sm:px-6 md:px-0">
+              {/* DOCTOR INFO SECTION - TABS ON TOP */}
+              <div className="lg:w-[68%] bg-white rounded-3xl shadow-sm p-4 sm:p-6">
+                {/* Tabs Header */}
+                <div className="border-b border-gray-200 mb-6 overflow-x-auto">
+                  <nav className="flex space-x-4 sm:space-x-6 min-w-max">
+                    {["overview", "experience & education", "patient feedback", "FAQs"].map(
+                      (tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`cursor-pointer whitespace-nowrap pb-3 text-sm sm:text-base font-medium capitalize border-b-2 transition-colors ${activeTab === tab
+                            ? "border-blue-600 text-blue-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700"
+                            }`}
+                        >
+                          {tab}
+                        </button>
+                      )
+                    )}
+                  </nav>
+                </div>
+
+                {/* Tab Content */}
+                <div>
+                  {/* Overview */}
+                  {activeTab === "overview" && (
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
+                        Overview
+                      </h3>
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                        {displayedAbout2}
+                        {isAboutLong && !aboutExpanded2 && "... "}
+                        {isAboutLong && (
+                          <button
+                            onClick={() => setAboutExpanded2(!aboutExpanded2)}
+                            className="ml-1 text-blue-600 font-medium hover:underline"
+                          >
+                            {aboutExpanded2 ? "Read Less" : "Read More"}
+                          </button>
+                        )}
+                      </p>
+
                     </div>
+                  )}
 
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                        <h5 className="font-medium text-gray-900 text-sm sm:text-base">
-                          {review.name}
-                        </h5>
-                        {review.verified && (
-                          <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                            <ThumbsUp className="w-3 h-3" />
-                            Verified
-                          </span>
+                  {/* Experience */}
+                  {activeTab === "experience & education" && (
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
+                        Experience
+                      </h3>
+                      <p className="text-gray-700 mb-2 text-sm sm:text-base">
+                        {data?.experience || "15+ years of clinical experience"}
+                      </p>
+                      <p className="text-gray-600 text-sm sm:text-base">
+                        Graduated in:{" "}
+                        <span className="font-medium">
+                          {data?.specialty || "D.O.M.P (Osteopathy)"}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* FAQs */}
+                  {activeTab === "FAQs" && (
+                    <div>
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
+                        Frequently Asked Questions
+                      </h3>
+
+                      <div className="space-y-4">
+                        {[
+                          {
+                            q: "How do I book an appointment with the doctor?",
+                            a: "You can easily book an appointment through our online booking system or by calling the clinic directly. Walk-ins are also welcome, but pre-booked slots are prioritized.",
+                          },
+                          {
+                            q: "What should I bring for my first visit?",
+                            a: "Please carry your previous medical records, prescription details, and any relevant test reports. It helps the doctor assess your condition more accurately.",
+                          },
+                          {
+                            q: "How should I take my prescribed medicines?",
+                            a: "Follow the dosage and timing strictly as prescribed. Always take medicines after food unless otherwise directed by your doctor. Avoid self-adjusting the dosage.",
+                          },
+                          {
+                            q: "Can I contact the doctor after my appointment?",
+                            a: "Yes. Follow-up consultations can be booked online or by phone. For urgent concerns, please contact our clinic helpline for immediate guidance.",
+                          },
+                        ].map((faq, i) => (
+                          <div
+                            key={i}
+                            className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
+                          >
+                            <h4 className="font-medium text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">
+                              {faq.q}
+                            </h4>
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
+                              {faq.a}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Patient Feedback */}
+                  {activeTab === "patient feedback" && (
+                    <div>
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3 sm:gap-0">
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-900">
+                          Recent Reviews
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setShowRatingForm(!showRatingForm)}
+                            className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition"
+                          >
+                            Write Review
+                          </button>
+                          <button
+                            onClick={() => setShowAllReviews(!showAllReviews)}
+                            className="cursor-pointer text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
+                          >
+                            {showAllReviews ? "Show Less" : "Show All Reviews"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Rating Form */}
+                      {showRatingForm && (
+                        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                          <h5 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                            Share Your Experience
+                          </h5>
+                          <form onSubmit={handleRatingSubmit}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Rating *
+                                </label>
+                                <div className="flex items-center gap-1">
+                                  {renderInteractiveStars(userRating, setUserRating, true)}
+                                  <span className="ml-2 text-xs sm:text-sm text-gray-600">
+                                    {userRating > 0 &&
+                                      `${userRating} star${userRating > 1 ? "s" : ""}`}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mb-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Your Review *
+                              </label>
+                              <textarea
+                                value={userComment}
+                                onChange={(e) => setUserComment(e.target.value)}
+                                rows="4"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                                placeholder="Share your experience with this doctor..."
+                                required
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                {userComment.length}/500 characters
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                              <button
+                                type="submit"
+                                disabled={submittingRating}
+                                className="cursor-pointer bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-2"
+                              >
+                                {submittingRating ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    Submitting...
+                                  </>
+                                ) : (
+                                  "Submit Review"
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowRatingForm(false);
+                                  setUserRating(0);
+                                  setUserComment("");
+                                  setUserName("");
+                                }}
+                                className="cursor-pointer bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+
+                      {/* Reviews */}
+                      <div className="space-y-4">
+                        {totalReviews > 0 ? (
+                          (showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
+                            <div
+                              key={review.id}
+                              className="border-b border-gray-100 pb-4 last:border-b-0"
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <User className="w-5 h-5 text-blue-600" />
+                                </div>
+
+                                <div className="flex-1">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                    <h5 className="font-medium text-gray-900 text-sm sm:text-base">
+                                      {review.name}
+                                    </h5>
+                                    {review.verified && (
+                                      <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                        <ThumbsUp className="w-3 h-3" />
+                                        Verified
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <div className="flex">{renderStars(review.rating)}</div>
+                                    <span className="text-xs text-gray-500">
+                                      {formatDate(review.createdAt)}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-gray-700 text-sm leading-relaxed">
+                                    {review.comment}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-gray-600">
+                            <p className="text-sm">No reviews yet. Be the first to write one!</p>
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <div className="flex">{renderStars(review.rating)}</div>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(review.createdAt)}
-                        </span>
-                      </div>
-
-                      <p className="text-gray-700 text-sm leading-relaxed">
-                        {review.comment}
-                      </p>
+                      {!showAllReviews && reviews.length > 3 && (
+                        <div className="text-center mt-4">
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Showing 3 of {totalReviews} reviews
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-6 text-gray-600">
-                <p className="text-sm">No reviews yet. Be the first to write one!</p>
+
+
+
               </div>
-            )}
-          </div>
+              {/* RIGHT: Contact Form */}
+              <div className="lg:w-[32%] bg-gradient-to-br from-[#eaf2fd] to-[#e7f7f6] p-6 rounded-3xl shadow-sm h-fit lg:mt-[-220px] ">
+                <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">
+                  Find The Best
+                </h2>
 
-          {!showAllReviews && reviews.length > 3 && (
-            <div className="text-center mt-4">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Showing 3 of {totalReviews} reviews
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email ID"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone No"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  />
+                  <textarea
+                    name="message"
+                    placeholder="How Can We Help You"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
+                  ></textarea>
 
-
-
-            </div>
-            {/* RIGHT: Contact Form */}
-            <div className="lg:w-[32%] bg-gradient-to-br from-[#eaf2fd] to-[#e7f7f6] p-6 rounded-3xl shadow-sm h-fit lg:mt-[-220px] ">
-              <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">
-                Find The Best
-              </h2>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email ID"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                />
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone No"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                />
-                <textarea
-                  name="message"
-                  placeholder="How Can We Help You"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-[#d5d8d8] rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none"
-                ></textarea>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`cursor-pointer w-full bg-gradient-to-r from-[#378bbc] to-[#689731] text-white py-2 rounded-xl font-semibold transition-all ${loading ? "opacity-70 cursor-not-allowed" : "hover:opacity-90"
-                    }`}
-                >
-                  {loading ? "Submitting..." : "Contact us"}
-                </button>
-
-                {message && (
-                  <p
-                    className={`text-sm text-center ${message.startsWith("✅") ? "text-green-600" : "text-red-500"
-                    }`}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`cursor-pointer w-full bg-gradient-to-r from-[#378bbc] to-[#689731] text-white py-2 rounded-xl font-semibold transition-all ${loading ? "opacity-70 cursor-not-allowed" : "hover:opacity-90"
+                      }`}
                   >
-                    {message}
-                  </p>
-                )}
-              </form>
+                    {loading ? "Submitting..." : "Contact us"}
+                  </button>
+
+                  {message && (
+                    <p
+                      className={`text-sm text-center ${message.startsWith("✅") ? "text-green-600" : "text-red-500"
+                        }`}
+                    >
+                      {message}
+                    </p>
+                  )}
+                </form>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Calendly Booking */}
-      {/* <div className="w-full rounded-xl shadow mt-4">
+        {/* Calendly Booking */}
+        {/* <div className="w-full rounded-xl shadow mt-4">
         {data && data?.calendlyUrl && (
           <div>
           <InlineWidget
@@ -771,8 +804,8 @@ const AppointmentDetails = () => {
             )}
       </div> */}
 
-      {/* Reviews List */}
-      {/* <div className="bg-white rounded-xl shadow border border-gray-200 p-3 mb-3 mx-6">
+        {/* Reviews List */}
+        {/* <div className="bg-white rounded-xl shadow border border-gray-200 p-3 mb-3 mx-6">
         <div className="flex justify-between items-center mb-4">
           <h4 className="lg:text-lg font-semibold text-gray-900">
             Recent Reviews
@@ -793,8 +826,8 @@ const AppointmentDetails = () => {
           </div>
         </div> */}
 
-      {/* Rating Form */}
-      {/* {showRatingForm && (
+        {/* Rating Form */}
+        {/* {showRatingForm && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
           <h5 className="text-lg font-semibold text-gray-900 mb-4">
               Share Your Experience
@@ -922,8 +955,8 @@ const AppointmentDetails = () => {
             </div>
             )} 
             </div>*/}
-    </div>
-            </>
+      </div>
+    </>
   );
 };
 
