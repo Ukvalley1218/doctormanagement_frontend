@@ -219,7 +219,7 @@ const AppointmentDetails = () => {
       {/* SEO TAGS */}
       <Title>{data?.name} – Book Appointment | HealCure</Title>
 
-      <Meta
+      <Meta 
         name="description"
         content={`${data?.name} – ${data?.specialty}. Book doctor appointments online. Consultation fee: $${data?.consultationFee}. ${data?.about?.slice(
           0,

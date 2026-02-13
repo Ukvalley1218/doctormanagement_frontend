@@ -247,6 +247,9 @@ const Navbar = ({ onLoginClick, isLoggedIn = false, children }) => {
               <Link to="/medicines">
                 <button className="cursor-pointer font-semibold hover:text-blue-400">Medicines</button>
               </Link>
+              <Link to="/services">
+                <button className="cursor-pointer font-semibold hover:text-blue-400">Services</button>
+              </Link>
             </div>
           )}
 
