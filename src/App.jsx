@@ -26,6 +26,9 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import TermsAndConditions from "./components/information/terms";
 import PrivacyPolicy from "./components/information/privacy";
+import Services from "./components/services/Services";
+import ServiceDetails from "./components/services/ServiceDetails";
+import PackageDetails from "./components/services/PackageDetails";
 
 function App() {
   return (
@@ -79,6 +82,10 @@ function LayoutWithNavbar() {
         <Route path="/medicines" element={<Medicine />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/doctors" element={<Doctors />} />
+        <Route path="/services" element={< Services/>} />
+        <Route path='/services/:slug' element={ <ServiceDetails/>}/>
+        <Route path='/packages/:slug' element= {<PackageDetails />} />
+
         <Route path="/cart" element={<Cart />} />
         <Route
           path="/product_details/:productId"
