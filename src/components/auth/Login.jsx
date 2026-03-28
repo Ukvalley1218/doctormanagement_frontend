@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import login_image from "../../assets/images/admin.png";
 import logo from "../../assets/images/logo.png";
-import OTP from "./Otp";
 import TermsAndConditions from "../information/terms";
 import PrivacyPolicy from "../information/privacy";
 import apiClient from "../../../apiclient";
@@ -9,7 +8,9 @@ import { useAuth } from "../../contexts/AuthContext";
 
 const Login = ({ navigation, onLoginSuccess }) => {
   const [email, setEmail] = useState("");
-  const [showOTP, setShowOTP] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState("");
   const [submit, setSubmit] = useState(false);
   const [error, setError] = useState("");
   const [showLegal, setShowLegal] = useState(""); // "terms" | "privacy" | ""
@@ -18,29 +19,38 @@ const Login = ({ navigation, onLoginSuccess }) => {
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const handleGetOTP = async () => {
+  const handleSubmit = async () => {
     setError("");
     if (!email) return setError("Email is required");
-    if (!validateEmail(email))
-      return setError("Please enter a valid email address");
+    if (!validateEmail(email)) return setError("Please enter a valid email address");
+    if (!password) return setError("Password is required");
+    if (password.length < 6) return setError("Password must be at least 6 characters");
+    if (isRegister && !name) return setError("Name is required for registration");
 
     try {
       setSubmit(true);
-      const response = await apiClient.post("/auth/login", { email });
+      const endpoint = isRegister ? "/auth/register" : "/auth/login";
+      const payload = isRegister
+        ? { name, email, password }
+        : { email, password };
+
+      const response = await apiClient.post(endpoint, payload);
       console.log(response.data);
-      setShowOTP(true);
+
+      login(response.data);
+
+      if (typeof onLoginSuccess === "function") {
+        onLoginSuccess();
+      }
     } catch (error) {
       console.log(error.response);
       setError(
-        error.response?.data?.message || "Failed to send OTP. Please try again."
+        error.response?.data?.msg || "Something went wrong. Please try again."
       );
     } finally {
       setSubmit(false);
     }
   };
-
-  // If OTP screen is active
-  if (showOTP) return <OTP email={email} onLoginSuccess={onLoginSuccess} />;
 
   // If legal pages should be shown
   if (showLegal === "terms")
@@ -80,24 +90,54 @@ const Login = ({ navigation, onLoginSuccess }) => {
 
             <div className="text-center mb-0">
               <h2 className="text-xl font-semibold text-gray-700 mt-3">
-                Welcome to HealCure
+                {isRegister ? "Create Account" : "Welcome to HealCure"}
               </h2>
             </div>
 
             <div className="text-center mb-5">
               <p className="text-m md:text-l text-center text-gray-800 mb-2">
-                Get started by entering your email ID
+                {isRegister ? "Register a new account" : "Login to your account"}
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
+              {isRegister && (
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (error) setError("");
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-400"
+                  />
+                </div>
+              )}
+
               <div>
                 <input
                   type="email"
-                  placeholder="Enter your email ID"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className={`w-full px-4 py-3 border ${
+                    error ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-400`}
+                />
+              </div>
+
+              <div>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
                     if (error) setError("");
                   }}
                   className={`w-full px-4 py-3 border ${
@@ -110,17 +150,41 @@ const Login = ({ navigation, onLoginSuccess }) => {
               </div>
 
               <button
-                onClick={handleGetOTP}
+                onClick={handleSubmit}
                 disabled={submit}
                 className={`cursor-pointer w-full bg-blue-600 ${
                   submit ? "opacity-70 cursor-not-allowed" : "hover:bg-blue-700"
                 } text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 outline-none`}
               >
-                {submit ? "Submitting..." : "Get OTP"}
+                {submit ? "Submitting..." : isRegister ? "Register" : "Login"}
               </button>
 
               <div className="text-center text-sm text-gray-600">
-                By clicking on Get OTP, you agree to our <br />
+                {isRegister ? (
+                  <>
+                    Already have an account?{" "}
+                    <span
+                      onClick={() => setIsRegister(false)}
+                      className="text-[#2563EB] cursor-pointer hover:underline"
+                    >
+                      Login here
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account?{" "}
+                    <span
+                      onClick={() => setIsRegister(true)}
+                      className="text-[#2563EB] cursor-pointer hover:underline"
+                    >
+                      Register here
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="text-center text-sm text-gray-600">
+                By continuing, you agree to our <br />
                 <span
                   onClick={() => setShowLegal("terms")}
                   className="text-[#2563EB] cursor-pointer hover:underline"

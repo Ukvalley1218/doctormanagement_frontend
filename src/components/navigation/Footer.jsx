@@ -95,7 +95,7 @@ const Footer = () => {
                 <div className="bg-gradient-to-r from-[#2299e6] to-[#10abda] p-2 rounded-lg mt-0.5">
                   <Phone className="w-4 h-4" />
                 </div>
-                <span>+1 (555) 123-4567</span>
+                <span>+16478466375</span>
               </li>
               <li className="flex items-center gap-3">
                 <div className="bg-gradient-to-r from-[#08b6cb] to-[#12b7ac] p-2 rounded-lg mt-0.5">
@@ -107,7 +107,7 @@ const Footer = () => {
                 <div className="bg-gradient-to-r from-[#13b89f] to-[#10b885] p-2 rounded-lg mt-0.5">
                   <MapPin className="w-4 h-4 text-white" />
                 </div>
-                <span>123 Health St, Medical City</span>
+                <span>Unit 102, 3465 Semenyk Ct, Mississauga, ON L5C 4P9</span>
               </li>
             </ul>
           </div>

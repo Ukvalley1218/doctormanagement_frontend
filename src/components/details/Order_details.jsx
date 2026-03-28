@@ -60,7 +60,7 @@ const OrderDetails = () => {
           className="flex items-center gap-2 px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 w-full sm:w-auto justify-center"
           onClick={() =>
             window.open(
-              `https://vps.healcure.ca/api/orders/invoice/${orderData.orderId}`,
+              `http://localhost:3000/api/orders/invoice/${orderData.orderId}`,
               "_blank"
             )
           }

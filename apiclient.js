@@ -2,7 +2,7 @@ import axios from "axios";
 import { loadingManager } from "./src/contexts/LoadingContext";
 
 const apiClient = axios.create({
-  baseURL: "https://vps.healcure.ca/api",
+  baseURL: "http://localhost:3000/api",
   headers: {
     "Content-Type": "application/json",
   },

@@ -20,7 +20,6 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { LoadingProvider, useLoading } from "./contexts/LoadingContext";
 import CheckoutSuccess from "./components/checkout/CheckoutSuccess";
 import AppointmentSuccess from "./components/checkout/apointmentSuccess";
-import OTP from "./components/auth/Otp";
 import { useEffect, useState } from "react";
 import apiClient from "../apiclient";
 import { loadStripe } from "@stripe/stripe-js";
@@ -39,7 +38,6 @@ function App() {
             {/* Route for login without navbar */}
             {/* <Route path="/" element={<Home />} /> */}
             <Route path="/login" element={<Login />} />
-            <Route path="/otp" element={<OTP />} />
           </Routes>
           <GlobalLoadingOverlay />
         </div>
