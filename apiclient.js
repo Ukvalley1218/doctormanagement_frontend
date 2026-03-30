@@ -2,7 +2,7 @@ import axios from "axios";
 import { loadingManager } from "./src/contexts/LoadingContext";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://doctormanagement-backend.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },
